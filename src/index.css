@@ -40,9 +40,10 @@
 
     --radius: 0.6rem;
 
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-noodle: linear-gradient(135deg, hsl(38 95% 55%), hsl(20 95% 60%));
-    --gradient-lumina: linear-gradient(135deg, hsl(195 90% 55%), hsl(250 84% 65%));
+    --noodle: 38 92% 50%;
+    --noodle-foreground: 30 60% 12%;
+    --lumina: 195 90% 50%;
+    --lumina-foreground: 200 60% 12%;
     --gradient-text: linear-gradient(90deg, hsl(250 84% 58%), hsl(320 90% 60%), hsl(38 95% 55%));
 
     --shadow-soft: 0 1px 2px hsl(220 20% 20% / 0.06), 0 4px 12px hsl(220 20% 20% / 0.04);
@@ -109,17 +110,7 @@
     background-size: 200% auto;
     animation: shimmer 4s linear infinite;
   }
-  .text-gradient-primary {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
   .text-upside { display: inline-block; transform: rotate(180deg); }
-
-  .bg-gradient-primary { background: var(--gradient-primary); }
-  .bg-gradient-noodle { background: var(--gradient-noodle); }
-  .bg-gradient-lumina { background: var(--gradient-lumina); }
 
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-pop { box-shadow: var(--shadow-pop); }
