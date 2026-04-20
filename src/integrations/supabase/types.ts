@@ -14,16 +14,248 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      achievement_grants: {
+        Row: {
+          achievement_id: string
+          granted_at: string
+          granted_by: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          granted_at?: string
+          granted_by: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          granted_at?: string
+          granted_by?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_grants_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievements: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string
+          emoji: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string
+          emoji?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string
+          emoji?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_emoji: string
+          created_at: string
+          dev_build: boolean
+          display_name: string
+          email: string | null
+          font_pref: string
+          id: string
+          level: number
+          lumina: number
+          noodles: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          avatar_emoji?: string
+          created_at?: string
+          dev_build?: boolean
+          display_name?: string
+          email?: string | null
+          font_pref?: string
+          id?: string
+          level?: number
+          lumina?: number
+          noodles?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          avatar_emoji?: string
+          created_at?: string
+          dev_build?: boolean
+          display_name?: string
+          email?: string | null
+          font_pref?: string
+          id?: string
+          level?: number
+          lumina?: number
+          noodles?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      tab_buttons: {
+        Row: {
+          action_payload: string
+          action_type: string
+          created_at: string
+          id: string
+          label: string
+          position: number
+          tab_id: string
+          user_id: string
+        }
+        Insert: {
+          action_payload?: string
+          action_type?: string
+          created_at?: string
+          id?: string
+          label: string
+          position?: number
+          tab_id: string
+          user_id: string
+        }
+        Update: {
+          action_payload?: string
+          action_type?: string
+          created_at?: string
+          id?: string
+          label?: string
+          position?: number
+          tab_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tab_buttons_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "user_tabs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          custom_label: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          custom_label?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          custom_label?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_tabs: {
+        Row: {
+          content: string
+          created_at: string
+          emoji: string
+          id: string
+          is_public: boolean
+          level_lock: number
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          is_public?: boolean
+          level_lock?: number
+          name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          is_public?: boolean
+          level_lock?: number
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "co_owner" | "dev" | "member" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +382,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "co_owner", "dev", "member", "custom"],
+    },
   },
 } as const
