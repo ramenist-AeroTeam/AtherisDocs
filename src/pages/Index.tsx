@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,17 +7,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CornerChat, roleColor, roleLabel, avatarColor, avatarFg, initials } from "@/components/CornerChat";
+import { RealtimeCursors } from "@/components/RealtimeCursors";
+import { PropertyView } from "@/components/property/PropertyView";
+import { TabBlock, InventoryItem, GardenPlant, TabButton } from "@/components/property/types";
 import EmojiPicker from "emoji-picker-react";
 import {
-  LogOut, Sparkles, Play, Square, Plus, Trash2, Lock, Eye, EyeOff,
-  Trophy, Wand2, Code2, Type as TypeIcon, RotateCcw, Award,
+  LogOut, Sparkles, Play, Square, Plus, Trash2, Lock, EyeOff, Trophy, Wand2, Code2, Award,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,11 +30,7 @@ type Profile = {
 };
 type UserTab = {
   id: string; user_id: string; name: string; emoji: string; content: string;
-  is_public: boolean; level_lock: number;
-};
-type TabButton = {
-  id: string; tab_id: string; user_id: string; label: string;
-  action_type: string; action_payload: string; position: number;
+  is_public: boolean; level_lock: number; position: number;
 };
 type Achievement = { id: string; title: string; description: string; emoji: string; created_by: string };
 type Grant = { achievement_id: string; user_id: string };
@@ -54,6 +52,9 @@ export default function Index() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<{ user_id: string; role: string }[]>([]);
   const [tabs, setTabs] = useState<UserTab[]>([]);
+  const [blocks, setBlocks] = useState<TabBlock[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [plants, setPlants] = useState<GardenPlant[]>([]);
   const [buttons, setButtons] = useState<TabButton[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [grants, setGrants] = useState<Grant[]>([]);
@@ -72,8 +73,8 @@ export default function Index() {
   }, [roles]);
 
   const isStaff = myRole === "owner" || myRole === "co_owner";
-  const myTab = tabs.find((t) => t.user_id === userId);
-  const activeTab = tabs.find((t) => t.id === activeTabId) || myTab;
+  const isDev = isStaff || myRole === "dev";
+  const activeTab = tabs.find((t) => t.id === activeTabId);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -90,10 +91,13 @@ export default function Index() {
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [p, r, t, b, a, g] = await Promise.all([
+      const [p, r, t, bl, inv, pl, btn, a, g] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("user_roles").select("user_id, role"),
-        supabase.from("user_tabs").select("*").order("created_at"),
+        supabase.from("user_tabs").select("*").order("position").order("created_at"),
+        supabase.from("tab_blocks").select("*").order("position"),
+        supabase.from("inventory_items").select("*").order("position"),
+        supabase.from("garden_plants").select("*").order("position"),
         supabase.from("tab_buttons").select("*").order("position"),
         supabase.from("achievements").select("*").order("created_at", { ascending: false }),
         supabase.from("achievement_grants").select("achievement_id, user_id"),
@@ -101,7 +105,10 @@ export default function Index() {
       setProfiles((p.data as Profile[]) || []);
       setRoles((r.data as any) || []);
       setTabs((t.data as UserTab[]) || []);
-      setButtons((b.data as TabButton[]) || []);
+      setBlocks((bl.data as TabBlock[]) || []);
+      setInventory((inv.data as InventoryItem[]) || []);
+      setPlants((pl.data as GardenPlant[]) || []);
+      setButtons((btn.data as TabButton[]) || []);
       setAchievements((a.data as Achievement[]) || []);
       setGrants((g.data as Grant[]) || []);
       const mine = (p.data as Profile[] | null)?.find((x) => x.user_id === userId);
@@ -110,18 +117,17 @@ export default function Index() {
       const order = ["owner", "co_owner", "dev", "member", "custom"];
       myR.sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role));
       if (myR[0]) setMyRole(myR[0].role);
-      const ownTab = (t.data as UserTab[])?.find((x) => x.user_id === userId);
-      if (ownTab && !activeTabId) setActiveTabId(ownTab.id);
+      setActiveTabId((cur) => {
+        if (cur && (t.data as UserTab[])?.some((x) => x.id === cur)) return cur;
+        const own = (t.data as UserTab[])?.find((x) => x.user_id === userId);
+        return own?.id || (t.data as UserTab[])?.[0]?.id || "";
+      });
     };
     load();
-    const ch = supabase
-      .channel("atheris-sync")
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_tabs" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "tab_buttons" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "achievements" }, load)
-      .on("postgres_changes", { event: "*", schema: "public", table: "achievement_grants" }, load)
-      .subscribe();
+    const ch = supabase.channel("atheris-sync");
+    ["profiles", "user_roles", "user_tabs", "tab_blocks", "inventory_items", "garden_plants", "tab_buttons", "achievements", "achievement_grants"]
+      .forEach((tbl) => ch.on("postgres_changes", { event: "*", schema: "public", table: tbl }, load));
+    ch.subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [userId]);
 
@@ -133,10 +139,38 @@ export default function Index() {
     await supabase.from("profiles").update(patch).eq("user_id", userId);
   };
 
+  const onTabClick = (t: UserTab) => {
+    if (t.user_id !== userId && !t.is_public) {
+      toast.error(`${profilesMap.get(t.user_id)?.display_name || "Owner"}'s tab is private`);
+      return;
+    }
+    if (t.level_lock > me.level) {
+      toast.error(`Locked — requires level ${t.level_lock}`);
+      return;
+    }
+    setActiveTabId(t.id);
+  };
+
+  const createTab = async () => {
+    if (!isDev) return toast.error("Only Devs+ can create extra tabs");
+    const maxPos = tabs.reduce((m, t) => Math.max(m, t.position), -1);
+    const { data, error } = await supabase.from("user_tabs").insert({
+      user_id: userId, name: "New Property", emoji: "🏡", position: maxPos + 1,
+    }).select().single();
+    if (error) toast.error(error.message);
+    else if (data) setActiveTabId((data as any).id);
+  };
+
+  const deleteTab = async (id: string) => {
+    if (!confirm("Delete this property?")) return;
+    const { error } = await supabase.from("user_tabs").delete().eq("id", id);
+    if (error) toast.error(error.message);
+  };
+
   return (
     <div className={`min-h-screen bg-background text-foreground ${fontCls(me.font_pref)}`}>
       <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
           <h1 className="font-display text-2xl font-bold tracking-tight">atheris</h1>
           <div className="flex items-center gap-2">
             <CurrencyChip kind="noodles" value={me.noodles} />
@@ -167,23 +201,84 @@ export default function Index() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 pb-24">
+      <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
         <Tabs value={topTab} onValueChange={(v) => setTopTab(v as any)}>
           <TabsList>
-            <TabsTrigger value="tabs">Tabs</TabsTrigger>
+            <TabsTrigger value="tabs">Properties</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="ai">AI Builder</TabsTrigger>
             <TabsTrigger value="code">Code Runner</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tabs" className="mt-4">
-            <TabsView
-              tabs={tabs} activeTabId={activeTabId} setActiveTabId={setActiveTabId}
-              activeTab={activeTab} userId={userId} me={me}
-              profilesMap={profilesMap} rolesMap={rolesMap}
-              buttons={buttons} fontCls={fontCls(me.font_pref)}
-            />
+            <div className="grid grid-cols-[240px_1fr] gap-4">
+              <aside className="border rounded-lg bg-card p-2 space-y-1 h-fit sticky top-4">
+                <div className="px-2 py-1 text-xs uppercase text-muted-foreground tracking-wide">Properties</div>
+                <ScrollArea className="max-h-[70vh]">
+                  <div className="space-y-1">
+                    {tabs.map((t) => {
+                      const isMine = t.user_id === userId;
+                      const owner = profilesMap.get(t.user_id);
+                      const ownerRole = rolesMap.get(t.user_id) || "member";
+                      const locked = t.level_lock > me.level;
+                      const isPrivate = !t.is_public && !isMine;
+                      const active = t.id === activeTabId;
+                      return (
+                        <button key={t.id} onClick={() => onTabClick(t)}
+                          className={`w-full text-left px-2 py-1.5 rounded-md flex items-center gap-2 text-sm transition-colors ${
+                            active ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                          } ${(locked || isPrivate) ? "opacity-60" : ""}`}>
+                          <span className="text-base shrink-0">{t.emoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{t.name}</div>
+                            <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+                              {owner?.display_name}
+                              <Badge variant="outline" className={`${roleColor[ownerRole]} text-[9px] h-3.5 px-1`}>{roleLabel[ownerRole]}</Badge>
+                            </div>
+                          </div>
+                          {isPrivate && <EyeOff className="h-3 w-3 shrink-0" />}
+                          {locked && <Lock className="h-3 w-3 shrink-0" />}
+                          {isMine && isDev && tabs.filter((x) => x.user_id === userId).length > 1 && (
+                            <span onClick={(e) => { e.stopPropagation(); deleteTab(t.id); }}
+                              className="text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-3 w-3" />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+                {isDev && (
+                  <Button size="sm" variant="outline" className="w-full mt-2" onClick={createTab}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> new property
+                  </Button>
+                )}
+              </aside>
+
+              <section>
+                {activeTab ? (
+                  <PropertyView
+                    tab={activeTab}
+                    mine={activeTab.user_id === userId}
+                    userId={userId}
+                    ownerProfile={profilesMap.get(activeTab.user_id) as any}
+                    meProfile={me as any}
+                    blocks={blocks}
+                    inventory={inventory}
+                    plants={plants}
+                    buttons={buttons}
+                    onRename={(n) => supabase.from("user_tabs").update({ name: n }).eq("id", activeTab.id)}
+                    onEmoji={(e) => supabase.from("user_tabs").update({ emoji: e }).eq("id", activeTab.id)}
+                    onTogglePublic={(v) => supabase.from("user_tabs").update({ is_public: v }).eq("id", activeTab.id)}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">Select a property</div>
+                )}
+              </section>
+            </div>
           </TabsContent>
+
           <TabsContent value="achievements" className="mt-4">
             <AchievementsView isStaff={isStaff} userId={userId} achievements={achievements}
               grants={grants} profiles={profiles} rolesMap={rolesMap} />
@@ -194,6 +289,7 @@ export default function Index() {
       </main>
 
       <CornerChat userId={userId} profilesMap={profilesMap} rolesMap={rolesMap} />
+      <RealtimeCursors userId={userId} displayName={me.display_name} />
     </div>
   );
 }
@@ -212,234 +308,6 @@ function CurrencyChip({ kind, value }: { kind: "noodles" | "lumina"; value: numb
   );
 }
 
-function TabsView(props: {
-  tabs: UserTab[]; activeTabId: string; setActiveTabId: (s: string) => void;
-  activeTab: UserTab | undefined; userId: string; me: Profile;
-  profilesMap: Map<string, Profile>; rolesMap: Map<string, string>;
-  buttons: TabButton[]; fontCls: string;
-}) {
-  const { tabs, activeTabId, setActiveTabId, activeTab, userId, me, profilesMap, rolesMap, buttons } = props;
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-1.5 flex-wrap border-b pb-2">
-        {tabs.map((t) => {
-          const locked = t.level_lock > me.level;
-          const isMine = t.user_id === userId;
-          return (
-            <button key={t.id} onClick={() => !locked && setActiveTabId(t.id)} disabled={locked}
-              className={`flex items-center gap-1.5 px-3 h-9 rounded-md border text-sm transition-colors ${
-                t.id === activeTabId ? "bg-accent text-accent-foreground border-accent" : "bg-card hover:bg-muted"
-              } ${locked ? "opacity-50 cursor-not-allowed" : ""}`}>
-              <span>{t.emoji}</span>
-              <span className="font-medium">{t.name}</span>
-              {isMine && <Badge variant="outline" className="text-[10px] h-4 px-1">you</Badge>}
-              {locked && <Lock className="h-3 w-3" />}
-              {!t.is_public && <EyeOff className="h-3 w-3 text-muted-foreground" />}
-            </button>
-          );
-        })}
-      </div>
-      {activeTab && (
-        <TabEditor tab={activeTab} mine={activeTab.user_id === userId} userId={userId}
-          owner={profilesMap.get(activeTab.user_id)}
-          ownerRole={rolesMap.get(activeTab.user_id) || "member"}
-          buttons={buttons.filter((b) => b.tab_id === activeTab.id)}
-          fontCls={props.fontCls} />
-      )}
-    </div>
-  );
-}
-
-function TabEditor({ tab, mine, userId, owner, ownerRole, buttons, fontCls }: {
-  tab: UserTab; mine: boolean; userId: string;
-  owner?: Profile; ownerRole: string; buttons: TabButton[]; fontCls: string;
-}) {
-  const [name, setName] = useState(tab.name);
-  const [emoji, setEmoji] = useState(tab.emoji);
-  const [content, setContent] = useState(tab.content);
-  const [isPublic, setIsPublic] = useState(tab.is_public);
-  const [emojiOpen, setEmojiOpen] = useState(false);
-  const [styleMode, setStyleMode] = useState<"normal" | "gradient" | "upside">("normal");
-  const [addBtnOpen, setAddBtnOpen] = useState(false);
-
-  useEffect(() => {
-    setName(tab.name); setEmoji(tab.emoji); setContent(tab.content); setIsPublic(tab.is_public);
-  }, [tab.id]);
-
-  const saveMeta = async (patch: Partial<UserTab>) => {
-    await supabase.from("user_tabs").update(patch).eq("id", tab.id);
-  };
-  const saveContent = useDebouncedSave(async (v: string) => {
-    if (!mine) return;
-    await supabase.from("user_tabs").update({ content: v }).eq("id", tab.id);
-  });
-
-  const runButton = async (b: TabButton) => {
-    if (b.action_type === "message") toast(b.action_payload || b.label);
-    else if (b.action_type === "reward") {
-      const n = parseInt(b.action_payload, 10) || 1;
-      const { data: prof } = await supabase.from("profiles").select("noodles").eq("user_id", userId).single();
-      await supabase.from("profiles").update({ noodles: (prof?.noodles || 0) + n }).eq("user_id", userId);
-      toast.success(`+${n} 🍜`);
-    } else if (b.action_type === "js" && mine) {
-      try { new Function(b.action_payload)(); } catch (e: any) { toast.error(e.message); }
-    }
-  };
-
-  return (
-    <Card className="p-5 space-y-4">
-      <div className="flex items-center gap-3 flex-wrap">
-        {mine ? (
-          <>
-            <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
-              <PopoverTrigger asChild>
-                <button className="text-3xl h-12 w-12 rounded-md border hover:bg-muted">{emoji}</button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0 w-auto">
-                <EmojiPicker onEmojiClick={(e) => { setEmoji(e.emoji); saveMeta({ emoji: e.emoji }); setEmojiOpen(false); }}
-                  width={320} height={360} />
-              </PopoverContent>
-            </Popover>
-            <Input value={name} onChange={(e) => setName(e.target.value)}
-              onBlur={() => name !== tab.name && saveMeta({ name })}
-              className="text-xl font-semibold h-12 max-w-md" />
-          </>
-        ) : (
-          <>
-            <span className="text-3xl">{emoji}</span>
-            <h2 className="text-xl font-semibold">{name}</h2>
-          </>
-        )}
-        <div className="ml-auto flex items-center gap-2">
-          {owner && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>by</span>
-              <div className="h-6 w-6 rounded-full grid place-items-center text-[10px] font-bold"
-                style={{ background: avatarColor(owner.display_name), color: avatarFg(owner.display_name) }}>
-                {initials(owner.display_name)}
-              </div>
-              <span className="font-medium text-foreground">{owner.display_name}</span>
-              <Badge variant="outline" className={roleColor[ownerRole]}>{roleLabel[ownerRole]}</Badge>
-            </div>
-          )}
-          {mine && (
-            <Button variant="outline" size="sm"
-              onClick={() => { setIsPublic(!isPublic); saveMeta({ is_public: !isPublic }); }}>
-              {isPublic ? <Eye className="h-4 w-4 mr-1" /> : <EyeOff className="h-4 w-4 mr-1" />}
-              {isPublic ? "public" : "private"}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {mine && (
-        <div className="flex items-center gap-2 border rounded-md p-1.5 bg-muted/30 flex-wrap">
-          <Button variant={styleMode === "normal" ? "secondary" : "ghost"} size="sm" onClick={() => setStyleMode("normal")}>
-            <TypeIcon className="h-4 w-4 mr-1" /> normal
-          </Button>
-          <Button variant={styleMode === "gradient" ? "secondary" : "ghost"} size="sm" onClick={() => setStyleMode("gradient")}>
-            <Sparkles className="h-4 w-4 mr-1" /> gradient
-          </Button>
-          <Button variant={styleMode === "upside" ? "secondary" : "ghost"} size="sm" onClick={() => setStyleMode("upside")}>
-            <RotateCcw className="h-4 w-4 mr-1" /> upside-down
-          </Button>
-        </div>
-      )}
-
-      {mine ? (
-        <Textarea value={content}
-          onChange={(e) => { setContent(e.target.value); saveContent(e.target.value); }}
-          placeholder="write whatever you want here…"
-          className={`min-h-[280px] text-base leading-relaxed ${fontCls}`} />
-      ) : (
-        <div className={`min-h-[200px] whitespace-pre-wrap text-base leading-relaxed p-3 rounded-md border bg-muted/20 ${fontCls}`}>
-          {content || <span className="text-muted-foreground italic">empty tab</span>}
-        </div>
-      )}
-
-      {mine && content && (
-        <div>
-          <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">preview</div>
-          <div className={`p-3 rounded-md border bg-muted/20 ${fontCls} ${
-            styleMode === "gradient" ? "text-gradient" : ""
-          } ${styleMode === "upside" ? "text-upside" : ""} whitespace-pre-wrap`}>
-            {content}
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Buttons</Label>
-          {mine && (
-            <Dialog open={addBtnOpen} onOpenChange={setAddBtnOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-1" /> add button</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <AddButtonDialog tabId={tab.id} userId={userId} onDone={() => setAddBtnOpen(false)} />
-              </DialogContent>
-            </Dialog>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {buttons.length === 0 && <span className="text-sm text-muted-foreground">no buttons yet</span>}
-          {buttons.map((b) => (
-            <div key={b.id} className="flex items-center gap-1">
-              <Button variant="secondary" size="sm" onClick={() => runButton(b)}>{b.label}</Button>
-              {mine && (
-                <button onClick={async () => { await supabase.from("tab_buttons").delete().eq("id", b.id); }}
-                  className="text-muted-foreground hover:text-destructive">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-function AddButtonDialog({ tabId, userId, onDone }: { tabId: string; userId: string; onDone: () => void }) {
-  const [label, setLabel] = useState("");
-  const [type, setType] = useState("message");
-  const [payload, setPayload] = useState("");
-  const save = async () => {
-    if (!label.trim()) return toast.error("label required");
-    const { error } = await supabase.from("tab_buttons").insert({
-      tab_id: tabId, user_id: userId, label, action_type: type, action_payload: payload, position: 0,
-    });
-    if (error) toast.error(error.message); else { toast.success("button added"); onDone(); }
-  };
-  return (
-    <>
-      <DialogHeader><DialogTitle>Add button</DialogTitle></DialogHeader>
-      <div className="space-y-3">
-        <div><Label>Label</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Click me" /></div>
-        <div>
-          <Label>Action</Label>
-          <Select value={type} onValueChange={setType}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="message">show message (toast)</SelectItem>
-              <SelectItem value="reward">give noodles to clicker</SelectItem>
-              <SelectItem value="js">run JS (yours only)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>{type === "reward" ? "Amount of noodles" : type === "js" ? "JS code" : "Message"}</Label>
-          {type === "js"
-            ? <Textarea value={payload} onChange={(e) => setPayload(e.target.value)} className="font-mono-d text-sm min-h-[120px]" />
-            : <Input value={payload} onChange={(e) => setPayload(e.target.value)} />}
-        </div>
-      </div>
-      <DialogFooter><Button onClick={save}>Save</Button></DialogFooter>
-    </>
-  );
-}
-
 function AchievementsView({ isStaff, userId, achievements, grants, profiles, rolesMap }: {
   isStaff: boolean; userId: string;
   achievements: Achievement[]; grants: Grant[];
@@ -448,7 +316,6 @@ function AchievementsView({ isStaff, userId, achievements, grants, profiles, rol
   const [createOpen, setCreateOpen] = useState(false);
   const [grantOpen, setGrantOpen] = useState<string | null>(null);
   const myAch = new Set(grants.filter((g) => g.user_id === userId).map((g) => g.achievement_id));
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -467,14 +334,11 @@ function AchievementsView({ isStaff, userId, achievements, grants, profiles, rol
           </Dialog>
         )}
       </div>
-
       {achievements.length === 0 && (
         <Card className="p-8 text-center text-muted-foreground">
-          <Trophy className="h-10 w-10 mx-auto mb-2 opacity-50" />
-          no achievements yet
+          <Trophy className="h-10 w-10 mx-auto mb-2 opacity-50" /> no achievements yet
         </Card>
       )}
-
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {achievements.map((a) => {
           const unlocked = myAch.has(a.id);
@@ -523,9 +387,7 @@ function CreateAchievementDialog({ userId, onDone }: { userId: string; onDone: (
   const [emojiOpen, setEmojiOpen] = useState(false);
   const save = async () => {
     if (!title.trim()) return toast.error("title required");
-    const { error } = await supabase.from("achievements").insert({
-      title, description: desc, emoji, created_by: userId,
-    });
+    const { error } = await supabase.from("achievements").insert({ title, description: desc, emoji, created_by: userId });
     if (error) toast.error(error.message); else { toast.success("created"); onDone(); }
   };
   return (
@@ -559,9 +421,7 @@ function GrantDialog({ ach, userId, profiles, rolesMap, grants, onDone }: {
     if (granted.has(uid)) {
       await supabase.from("achievement_grants").delete().eq("achievement_id", ach.id).eq("user_id", uid);
     } else {
-      const { error } = await supabase.from("achievement_grants").insert({
-        achievement_id: ach.id, user_id: uid, granted_by: userId,
-      });
+      const { error } = await supabase.from("achievement_grants").insert({ achievement_id: ach.id, user_id: uid, granted_by: userId });
       if (error) toast.error(error.message);
     }
   };
@@ -574,9 +434,7 @@ function GrantDialog({ ach, userId, profiles, rolesMap, grants, onDone }: {
             const has = granted.has(p.user_id);
             return (
               <button key={p.user_id} onClick={() => toggle(p.user_id)}
-                className={`w-full flex items-center gap-2 p-2 rounded-md border text-left hover:bg-muted ${
-                  has ? "bg-accent border-accent" : ""
-                }`}>
+                className={`w-full flex items-center gap-2 p-2 rounded-md border text-left hover:bg-muted ${has ? "bg-accent border-accent" : ""}`}>
                 <div className="h-8 w-8 rounded-full grid place-items-center text-xs font-bold"
                   style={{ background: avatarColor(p.display_name), color: avatarFg(p.display_name) }}>
                   {initials(p.display_name)}
@@ -601,7 +459,6 @@ function AiBuilder() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ title: string; summary: string; html: string; tips: string[] } | null>(null);
   const [running, setRunning] = useState(false);
-
   const generate = async () => {
     if (!prompt.trim()) return;
     setLoading(true); setResult(null); setRunning(false);
@@ -613,7 +470,6 @@ function AiBuilder() {
     }
     setResult(data); setRunning(true);
   };
-
   return (
     <div className="space-y-4">
       <Card className="p-5 space-y-3">
@@ -626,7 +482,6 @@ function AiBuilder() {
           <Sparkles className="h-4 w-4 mr-1" /> {loading ? "generating…" : "Generate"}
         </Button>
       </Card>
-
       {result && (
         <Card className="p-5 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -663,11 +518,7 @@ function CodeRunner() {
   const [running, setRunning] = useState(false);
   const [alwaysOn, setAlwaysOn] = useState(false);
   const [src, setSrc] = useState("");
-
-  useEffect(() => {
-    if (alwaysOn) { setSrc(code); setRunning(true); }
-  }, [code, alwaysOn]);
-
+  useEffect(() => { if (alwaysOn) { setSrc(code); setRunning(true); } }, [code, alwaysOn]);
   return (
     <div className="grid lg:grid-cols-2 gap-4">
       <Card className="p-4 space-y-3">
@@ -687,28 +538,16 @@ function CodeRunner() {
             )}
           </div>
         </div>
-        <Textarea value={code} onChange={(e) => setCode(e.target.value)}
-          className="font-mono-d text-sm min-h-[400px]" spellCheck={false} />
+        <Textarea value={code} onChange={(e) => setCode(e.target.value)} className="font-mono-d text-sm min-h-[400px]" spellCheck={false} />
       </Card>
       <Card className="p-4 space-y-2">
         <h3 className="font-semibold text-sm text-muted-foreground">output</h3>
         {running ? (
-          <iframe key={src} sandbox="allow-scripts" srcDoc={src}
-            className="w-full h-[420px] rounded-md border bg-white" />
+          <iframe key={src} sandbox="allow-scripts" srcDoc={src} className="w-full h-[420px] rounded-md border bg-white" />
         ) : (
-          <div className="h-[420px] rounded-md border bg-muted/30 grid place-items-center text-muted-foreground text-sm">
-            press run
-          </div>
+          <div className="h-[420px] rounded-md border bg-muted/30 grid place-items-center text-muted-foreground text-sm">press run</div>
         )}
       </Card>
     </div>
   );
-}
-
-function useDebouncedSave<T>(fn: (v: T) => void, delay = 600) {
-  const ref = useRef<number | null>(null);
-  return (v: T) => {
-    if (ref.current) window.clearTimeout(ref.current);
-    ref.current = window.setTimeout(() => fn(v), delay);
-  };
 }
