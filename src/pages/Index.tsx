@@ -31,6 +31,7 @@ type Profile = {
 type UserTab = {
   id: string; user_id: string; name: string; emoji: string; content: string;
   is_public: boolean; level_lock: number; position: number;
+  kind: "property" | "blank";
 };
 type Achievement = { id: string; title: string; description: string; emoji: string; created_by: string };
 type Grant = { achievement_id: string; user_id: string };
