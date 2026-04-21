@@ -61,6 +61,7 @@ export default function Index() {
   const [grants, setGrants] = useState<Grant[]>([]);
   const [activeTabId, setActiveTabId] = useState<string>("");
   const [topTab, setTopTab] = useState<"tabs" | "achievements" | "ai" | "code">("tabs");
+  const [newTabOpen, setNewTabOpen] = useState(false);
 
   const profilesMap = useMemo(() => new Map(profiles.map((p) => [p.user_id, p])), [profiles]);
   const rolesMap = useMemo(() => {
