@@ -227,7 +227,7 @@ export default function Index() {
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
         <Tabs value={topTab} onValueChange={(v) => setTopTab(v as any)}>
           <TabsList>
-            <TabsTrigger value="tabs">Properties</TabsTrigger>
+            <TabsTrigger value="tabs">Tabs</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="ai">AI Builder</TabsTrigger>
             <TabsTrigger value="code">Code Runner</TabsTrigger>
