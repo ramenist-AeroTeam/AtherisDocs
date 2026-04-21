@@ -386,6 +386,7 @@ export type Database = {
           emoji: string
           id: string
           is_public: boolean
+          kind: string
           level_lock: number
           name: string
           position: number
@@ -398,6 +399,7 @@ export type Database = {
           emoji?: string
           id?: string
           is_public?: boolean
+          kind?: string
           level_lock?: number
           name?: string
           position?: number
@@ -410,6 +412,7 @@ export type Database = {
           emoji?: string
           id?: string
           is_public?: boolean
+          kind?: string
           level_lock?: number
           name?: string
           position?: number
