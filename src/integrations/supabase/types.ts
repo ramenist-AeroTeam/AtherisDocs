@@ -94,6 +94,109 @@ export type Database = {
         }
         Relationships: []
       }
+      garden_plants: {
+        Row: {
+          block_id: string
+          created_at: string
+          emoji: string
+          food: number
+          happiness: number
+          id: string
+          is_equipped: boolean
+          level: number
+          name: string
+          noodles_per_hour: number
+          plant_type: string
+          position: number
+          user_id: string
+          water: number
+        }
+        Insert: {
+          block_id: string
+          created_at?: string
+          emoji?: string
+          food?: number
+          happiness?: number
+          id?: string
+          is_equipped?: boolean
+          level?: number
+          name?: string
+          noodles_per_hour?: number
+          plant_type?: string
+          position?: number
+          user_id: string
+          water?: number
+        }
+        Update: {
+          block_id?: string
+          created_at?: string
+          emoji?: string
+          food?: number
+          happiness?: number
+          id?: string
+          is_equipped?: boolean
+          level?: number
+          name?: string
+          noodles_per_hour?: number
+          plant_type?: string
+          position?: number
+          user_id?: string
+          water?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garden_plants_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "tab_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_items: {
+        Row: {
+          block_id: string
+          category: string
+          created_at: string
+          emoji: string
+          id: string
+          name: string
+          position: number
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          block_id: string
+          category?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          name: string
+          position?: number
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          block_id?: string
+          category?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          name?: string
+          position?: number
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "tab_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_emoji: string
@@ -142,38 +245,110 @@ export type Database = {
         }
         Relationships: []
       }
+      tab_blocks: {
+        Row: {
+          block_type: string
+          created_at: string
+          data: Json
+          gradient_from: string
+          gradient_mode: string
+          gradient_to: string
+          id: string
+          position: number
+          tab_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          block_type?: string
+          created_at?: string
+          data?: Json
+          gradient_from?: string
+          gradient_mode?: string
+          gradient_to?: string
+          id?: string
+          position?: number
+          tab_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          block_type?: string
+          created_at?: string
+          data?: Json
+          gradient_from?: string
+          gradient_mode?: string
+          gradient_to?: string
+          id?: string
+          position?: number
+          tab_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tab_blocks_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "user_tabs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tab_buttons: {
         Row: {
           action_payload: string
           action_type: string
+          block_id: string | null
+          color: string
+          cost_amount: number
+          cost_currency: string
           created_at: string
           id: string
           label: string
           position: number
+          reward_item: string
           tab_id: string
           user_id: string
         }
         Insert: {
           action_payload?: string
           action_type?: string
+          block_id?: string | null
+          color?: string
+          cost_amount?: number
+          cost_currency?: string
           created_at?: string
           id?: string
           label: string
           position?: number
+          reward_item?: string
           tab_id: string
           user_id: string
         }
         Update: {
           action_payload?: string
           action_type?: string
+          block_id?: string | null
+          color?: string
+          cost_amount?: number
+          cost_currency?: string
           created_at?: string
           id?: string
           label?: string
           position?: number
+          reward_item?: string
           tab_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tab_buttons_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "tab_blocks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tab_buttons_tab_id_fkey"
             columns: ["tab_id"]
@@ -213,6 +388,7 @@ export type Database = {
           is_public: boolean
           level_lock: number
           name: string
+          position: number
           updated_at: string
           user_id: string
         }
@@ -224,6 +400,7 @@ export type Database = {
           is_public?: boolean
           level_lock?: number
           name?: string
+          position?: number
           updated_at?: string
           user_id: string
         }
@@ -235,6 +412,7 @@ export type Database = {
           is_public?: boolean
           level_lock?: number
           name?: string
+          position?: number
           updated_at?: string
           user_id?: string
         }
