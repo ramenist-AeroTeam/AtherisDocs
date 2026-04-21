@@ -152,18 +152,40 @@ export default function Index() {
     setActiveTabId(t.id);
   };
 
-  const createTab = async () => {
+  const [newTabOpen, setNewTabOpen] = useState(false);
+  const createTab = async (kind: "property" | "blank") => {
     if (!isDev) return toast.error("Only Devs+ can create extra tabs");
     const maxPos = tabs.reduce((m, t) => Math.max(m, t.position), -1);
+    const isProp = kind === "property";
     const { data, error } = await supabase.from("user_tabs").insert({
-      user_id: userId, name: "New Property", emoji: "🏡", position: maxPos + 1,
+      user_id: userId,
+      name: isProp ? "New Property" : "New Tab",
+      emoji: isProp ? "🏡" : "📄",
+      position: maxPos + 1,
+      kind,
     }).select().single();
-    if (error) toast.error(error.message);
-    else if (data) setActiveTabId((data as any).id);
+    if (error) { toast.error(error.message); return; }
+    if (data) {
+      setActiveTabId((data as any).id);
+      if (isProp) {
+        const tabId = (data as any).id;
+        const seed = [
+          { block_type: "header", position: 0, data: { title: "Welcome to your property!", subtitle: "This is your own mini world! Have fun editing." } },
+          { block_type: "stats", position: 1, data: { title: "", job: "" } },
+          { block_type: "currency", position: 2, data: {} },
+          { block_type: "inventory", position: 3, data: {} },
+          { block_type: "garden", position: 4, data: {} },
+        ];
+        await supabase.from("tab_blocks").insert(
+          seed.map((s) => ({ ...s, tab_id: tabId, user_id: userId, gradient_mode: "none", gradient_from: "", gradient_to: "" }))
+        );
+      }
+    }
+    setNewTabOpen(false);
   };
 
   const deleteTab = async (id: string) => {
-    if (!confirm("Delete this property?")) return;
+    if (!confirm("Delete this tab?")) return;
     const { error } = await supabase.from("user_tabs").delete().eq("id", id);
     if (error) toast.error(error.message);
   };
