@@ -236,7 +236,7 @@ export default function Index() {
           <TabsContent value="tabs" className="mt-4">
             <div className="grid grid-cols-[240px_1fr] gap-4">
               <aside className="border rounded-lg bg-card p-2 space-y-1 h-fit sticky top-4">
-                <div className="px-2 py-1 text-xs uppercase text-muted-foreground tracking-wide">Properties</div>
+                <div className="px-2 py-1 text-xs uppercase text-muted-foreground tracking-wide">Tabs</div>
                 <ScrollArea className="max-h-[70vh]">
                   <div className="space-y-1">
                     {tabs.map((t) => {
@@ -253,7 +253,12 @@ export default function Index() {
                           } ${(locked || isPrivate) ? "opacity-60" : ""}`}>
                           <span className="text-base shrink-0">{t.emoji}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{t.name}</div>
+                            <div className="font-medium truncate flex items-center gap-1">
+                              <span className="truncate">{t.name}</span>
+                              {t.kind === "property" && (
+                                <span className="text-[9px] px-1 rounded bg-primary/15 text-primary border border-primary/20 shrink-0">PROP</span>
+                              )}
+                            </div>
                             <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
                               {owner?.display_name}
                               <Badge variant="outline" className={`${roleColor[ownerRole]} text-[9px] h-3.5 px-1`}>{roleLabel[ownerRole]}</Badge>
@@ -273,9 +278,30 @@ export default function Index() {
                   </div>
                 </ScrollArea>
                 {isDev && (
-                  <Button size="sm" variant="outline" className="w-full mt-2" onClick={createTab}>
-                    <Plus className="h-3.5 w-3.5 mr-1" /> new property
-                  </Button>
+                  <Dialog open={newTabOpen} onOpenChange={setNewTabOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="w-full mt-2">
+                        <Plus className="h-3.5 w-3.5 mr-1" /> new tab
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader><DialogTitle>What kind of tab?</DialogTitle></DialogHeader>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => createTab("property")}
+                          className="border rounded-lg p-4 text-left hover:bg-muted transition-colors space-y-1">
+                          <div className="text-3xl">🏡</div>
+                          <div className="font-semibold">Property</div>
+                          <div className="text-xs text-muted-foreground">Pre-filled with header, stats, currency, inventory & garden blocks.</div>
+                        </button>
+                        <button onClick={() => createTab("blank")}
+                          className="border rounded-lg p-4 text-left hover:bg-muted transition-colors space-y-1">
+                          <div className="text-3xl">📄</div>
+                          <div className="font-semibold">Blank</div>
+                          <div className="text-xs text-muted-foreground">Empty canvas — add any blocks you want.</div>
+                        </button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </aside>
 
