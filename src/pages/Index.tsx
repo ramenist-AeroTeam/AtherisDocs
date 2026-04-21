@@ -152,7 +152,6 @@ export default function Index() {
     setActiveTabId(t.id);
   };
 
-  const [newTabOpen, setNewTabOpen] = useState(false);
   const createTab = async (kind: "property" | "blank") => {
     if (!isDev) return toast.error("Only Devs+ can create extra tabs");
     const maxPos = tabs.reduce((m, t) => Math.max(m, t.position), -1);
