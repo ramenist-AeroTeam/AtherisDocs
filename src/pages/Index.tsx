@@ -205,6 +205,7 @@ export default function Index() {
             <Badge variant="outline" className="font-mono-d">Lv {me.level}</Badge>
           </div>
           <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <Link to="/changelog" className="text-xs text-muted-foreground hover:text-foreground px-2">changelog</Link>
             <Select value={me.font_pref} onValueChange={(v) => updateMe({ font_pref: v })}>
               <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -343,6 +344,9 @@ export default function Index() {
 
       <CornerChat userId={userId} profilesMap={profilesMap} rolesMap={rolesMap} />
       <RealtimeCursors userId={userId} displayName={me.display_name} />
+      {activeTab && activeTab.user_id === userId && (
+        <BuilderDock tabId={activeTab.id} userId={userId} blocks={blocks} />
+      )}
     </div>
   );
 }
