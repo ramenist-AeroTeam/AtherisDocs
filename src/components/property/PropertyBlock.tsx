@@ -122,24 +122,58 @@ function saveData(blockId: string, data: any) {
 }
 
 function HeaderBlock({ block, mine }: { block: TabBlock; mine: boolean }) {
-  const [title, setTitle] = useState<string>(block.data?.title || "Welcome to your property!");
-  const [subtitle, setSubtitle] = useState<string>(block.data?.subtitle || "This is your own mini world! Have fun editing.");
-  useEffect(() => { setTitle(block.data?.title || "Welcome to your property!"); setSubtitle(block.data?.subtitle || ""); }, [block.id]);
-  const save = () => saveData(block.id, { ...block.data, title, subtitle });
+  const [title, setTitle] = useState<string>(block.data?.title || "Welcome to your Property!");
+  const [subtitle, setSubtitle] = useState<string>(block.data?.subtitle || "This is your own mini world! Have fun editing to your heart's desire.");
+  const [imageUrl, setImageUrl] = useState<string>(block.data?.imageUrl || "");
+  const [imageCredit, setImageCredit] = useState<string>(block.data?.imageCredit || "Picture of the day");
+  useEffect(() => {
+    setTitle(block.data?.title || "Welcome to your Property!");
+    setSubtitle(block.data?.subtitle || "This is your own mini world! Have fun editing to your heart's desire.");
+    setImageUrl(block.data?.imageUrl || "");
+    setImageCredit(block.data?.imageCredit || "Picture of the day");
+  }, [block.id]);
+  const save = () => saveData(block.id, { ...block.data, title, subtitle, imageUrl, imageCredit });
   return (
-    <div className="space-y-1">
-      {mine ? (
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={save}
-          className="text-2xl font-bold h-auto py-1 border-0 bg-transparent px-0 focus-visible:ring-0" />
-      ) : (
-        <h2 className="text-2xl font-bold">{title}</h2>
+    <div className="space-y-3">
+      {(imageUrl || mine) && (
+        <div className="space-y-1">
+          {imageUrl ? (
+            <img src={imageUrl} alt={imageCredit} className="w-full h-40 object-cover rounded-md border" loading="lazy" />
+          ) : (
+            <div className="w-full h-32 rounded-md border-2 border-dashed grid place-items-center text-xs text-muted-foreground">
+              add an image url below ↓
+            </div>
+          )}
+          {mine ? (
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} onBlur={save}
+                placeholder="Image URL (picture of the day)" className="h-7 text-xs" />
+              <Input value={imageCredit} onChange={(e) => setImageCredit(e.target.value)} onBlur={save}
+                placeholder="Credit" className="h-7 text-xs w-40" />
+            </div>
+          ) : (
+            <p className="text-[11px] text-center text-muted-foreground italic">{imageCredit}</p>
+          )}
+        </div>
       )}
-      {mine ? (
-        <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} onBlur={save}
-          className="text-sm text-muted-foreground border-0 bg-transparent px-0 focus-visible:ring-0" />
-      ) : (
-        subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>
-      )}
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-6 w-6 text-[hsl(38_95%_55%)] shrink-0" />
+        {mine ? (
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} onBlur={save}
+            className="text-2xl font-bold font-display h-auto py-1 border-0 bg-transparent px-0 focus-visible:ring-0" />
+        ) : (
+          <h2 className="text-2xl font-bold font-display">{title}</h2>
+        )}
+      </div>
+      <div className="rounded-md px-3 py-2 text-sm leading-snug"
+        style={{ background: "hsl(142 80% 90%)", color: "hsl(142 60% 18%)" }}>
+        {mine ? (
+          <textarea value={subtitle} onChange={(e) => setSubtitle(e.target.value)} onBlur={save}
+            className="w-full bg-transparent outline-none resize-y min-h-[2.5rem]" />
+        ) : (
+          <p className="whitespace-pre-wrap">{subtitle}</p>
+        )}
+      </div>
     </div>
   );
 }

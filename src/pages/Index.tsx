@@ -15,8 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { CornerChat, roleColor, roleLabel, avatarColor, avatarFg, initials } from "@/components/CornerChat";
 import { RealtimeCursors } from "@/components/RealtimeCursors";
+import { BetaDisclaimer } from "@/components/BetaDisclaimer";
 import { PropertyView } from "@/components/property/PropertyView";
+import { BuilderDock } from "@/components/property/BuilderDock";
 import { TabBlock, InventoryItem, GardenPlant, TabButton } from "@/components/property/types";
+import { Link } from "react-router-dom";
 import EmojiPicker from "emoji-picker-react";
 import {
   LogOut, Sparkles, Play, Square, Plus, Trash2, Lock, EyeOff, Trophy, Wand2, Code2, Award,
@@ -192,15 +195,17 @@ export default function Index() {
 
   return (
     <div className={`min-h-screen bg-background text-foreground ${fontCls(me.font_pref)}`}>
+      <BetaDisclaimer />
       <header className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
-          <h1 className="font-display text-2xl font-bold tracking-tight">atheris</h1>
+          <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient">atheris</Link>
           <div className="flex items-center gap-2">
             <CurrencyChip kind="noodles" value={me.noodles} />
             <CurrencyChip kind="lumina" value={me.lumina} />
             <Badge variant="outline" className="font-mono-d">Lv {me.level}</Badge>
           </div>
           <div className="ml-auto flex items-center gap-2 flex-wrap">
+            <Link to="/changelog" className="text-xs text-muted-foreground hover:text-foreground px-2">changelog</Link>
             <Select value={me.font_pref} onValueChange={(v) => updateMe({ font_pref: v })}>
               <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -339,6 +344,9 @@ export default function Index() {
 
       <CornerChat userId={userId} profilesMap={profilesMap} rolesMap={rolesMap} />
       <RealtimeCursors userId={userId} displayName={me.display_name} />
+      {activeTab && activeTab.user_id === userId && (
+        <BuilderDock tabId={activeTab.id} userId={userId} blocks={blocks} />
+      )}
     </div>
   );
 }
