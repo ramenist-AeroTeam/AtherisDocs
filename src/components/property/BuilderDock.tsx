@@ -47,10 +47,10 @@ const PRESETS: Preset[] = [
     hint: "1000 🍜",
     icon: ShoppingCart,
     cls: "from-[hsl(142_70%_55%)] to-[hsl(142_70%_42%)] text-white",
-    onDrop: (tabId, userId, position) => addButtonBlockWithButton(tabId, userId, position, {
+    onDrop: async (tabId, userId, position) => { await addButtonBlockWithButton(tabId, userId, position, {
       label: "Purchase", color: "success", cost_currency: "noodles", cost_amount: 1000,
       action_type: "message", action_payload: "Purchased!",
-    }),
+    }); },
   },
   {
     key: "regular",
@@ -58,10 +58,10 @@ const PRESETS: Preset[] = [
     hint: "Ur button here!",
     icon: MousePointerClick,
     cls: "from-[hsl(142_70%_55%)] to-[hsl(142_70%_42%)] text-white",
-    onDrop: (tabId, userId, position) => addButtonBlockWithButton(tabId, userId, position, {
+    onDrop: async (tabId, userId, position) => { await addButtonBlockWithButton(tabId, userId, position, {
       label: "Click me", color: "success", cost_currency: "none", cost_amount: 0,
       action_type: "message", action_payload: "Hi!",
-    }),
+    }); },
   },
   {
     key: "html",
