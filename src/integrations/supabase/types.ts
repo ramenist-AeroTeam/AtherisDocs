@@ -73,6 +73,45 @@ export type Database = {
         }
         Relationships: []
       }
+      aero_requests: {
+        Row: {
+          aero_username: string
+          created_at: string
+          id: string
+          notes: string
+          pets_text: string
+          processed_at: string | null
+          processed_by: string | null
+          role_request: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          aero_username?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          pets_text?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          role_request?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          aero_username?: string
+          created_at?: string
+          id?: string
+          notes?: string
+          pets_text?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          role_request?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -209,6 +248,7 @@ export type Database = {
           level: number
           lumina: number
           noodles: number
+          tutorial_seen: boolean
           updated_at: string
           user_id: string
           xp: number
@@ -224,6 +264,7 @@ export type Database = {
           level?: number
           lumina?: number
           noodles?: number
+          tutorial_seen?: boolean
           updated_at?: string
           user_id: string
           xp?: number
@@ -239,6 +280,7 @@ export type Database = {
           level?: number
           lumina?: number
           noodles?: number
+          tutorial_seen?: boolean
           updated_at?: string
           user_id?: string
           xp?: number
