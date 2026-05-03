@@ -57,11 +57,8 @@ export default function Index() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [plants, setPlants] = useState<GardenPlant[]>([]);
   const [buttons, setButtons] = useState<TabButton[]>([]);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [grants, setGrants] = useState<Grant[]>([]);
   const [activeTabId, setActiveTabId] = useState<string>("");
-  const [topTab, setTopTab] = useState<"tabs" | "achievements" | "ai" | "code">("tabs");
-  const [newTabOpen, setNewTabOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const profilesMap = useMemo(() => new Map(profiles.map((p) => [p.user_id, p])), [profiles]);
   const rolesMap = useMemo(() => {
