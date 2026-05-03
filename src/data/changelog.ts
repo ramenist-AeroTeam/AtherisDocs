@@ -9,6 +9,21 @@ export type ChangelogEntry = {
 // Hand-maintained. Newest first.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-05-03",
+    version: "0.6.0-beta",
+    title: "Unified builder + Aero migration + tutorial",
+    tags: ["feature", "design", "backend"],
+    notes: [
+      "Removed Achievements / AI Builder / Code Runner top tabs — focusing the app on tabs & properties.",
+      "Reworked top bar to match the concept: sticky, beta chip, currencies, Aero CTA, tutorial CTA.",
+      "Builder dock now contains every block type (buttons, content, AND property modules: stats, currency, inventory, garden) — no more separate add-block menu.",
+      "Properties are auto-built on signup with header + stats + currency + inventory + garden — they're now your home/stat-board, not something you create.",
+      "New 'Played Aero?' button in the header: players submit their Aero username, pets, and old role; staff review & approve from the same dialog.",
+      "Tutorial dialog walks new players through Atheris — shown once, re-openable from the header.",
+      "Fixed tab-creation error by removing the property/blank picker and using a single blank-tab create flow (devs+ only).",
+    ],
+  },
+  {
     date: "2026-05-02",
     version: "0.5.0-beta",
     title: "Landing page, beta banner & changelog",
