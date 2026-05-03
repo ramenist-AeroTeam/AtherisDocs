@@ -33,8 +33,6 @@ type UserTab = {
   is_public: boolean; level_lock: number; position: number;
   kind: "property" | "blank";
 };
-type Achievement = { id: string; title: string; description: string; emoji: string; created_by: string };
-type Grant = { achievement_id: string; user_id: string };
 
 const FONT_OPTIONS = [
   { value: "inter", label: "Inter", cls: "" },
