@@ -24,7 +24,7 @@ async function addBlock(tabId: string, userId: string, type: BlockType, position
 async function addButtonBlock(
   tabId: string, userId: string, position: number,
   btn: { label: string; color: string; cost_currency: string; cost_amount: number; action_type: string; action_payload: string },
-) {
+): Promise<void> {
   const { data, error } = await supabase.from("tab_blocks").insert({
     tab_id: tabId, user_id: userId, block_type: "buttons", position, data: {},
     gradient_mode: "none", gradient_from: "", gradient_to: "",
