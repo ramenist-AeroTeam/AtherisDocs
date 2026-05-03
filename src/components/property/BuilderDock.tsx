@@ -29,7 +29,7 @@ async function addButtonBlock(
     tab_id: tabId, user_id: userId, block_type: "buttons", position, data: {},
     gradient_mode: "none", gradient_from: "", gradient_to: "",
   }).select().single();
-  if (error || !data) return toast.error(error?.message || "failed");
+  if (error || !data) { toast.error(error?.message || "failed"); return; }
   await supabase.from("tab_buttons").insert({
     tab_id: tabId, block_id: (data as any).id, user_id: userId,
     label: btn.label, color: btn.color, action_type: btn.action_type, action_payload: btn.action_payload,
