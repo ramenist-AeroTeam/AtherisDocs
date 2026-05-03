@@ -26,7 +26,7 @@ import { toast } from "sonner";
 type Profile = {
   user_id: string; email: string | null; display_name: string; avatar_emoji: string;
   level: number; xp: number; noodles: number; lumina: number;
-  font_pref: string; dev_build: boolean;
+  font_pref: string; dev_build: boolean; tutorial_seen?: boolean;
 };
 type UserTab = {
   id: string; user_id: string; name: string; emoji: string; content: string;
