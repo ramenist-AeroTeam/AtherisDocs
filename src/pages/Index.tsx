@@ -90,7 +90,7 @@ export default function Index() {
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [p, r, t, bl, inv, pl, btn, a, g] = await Promise.all([
+      const [p, r, t, bl, inv, pl, btn] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("user_tabs").select("*").order("position").order("created_at"),
@@ -98,8 +98,6 @@ export default function Index() {
         supabase.from("inventory_items").select("*").order("position"),
         supabase.from("garden_plants").select("*").order("position"),
         supabase.from("tab_buttons").select("*").order("position"),
-        supabase.from("achievements").select("*").order("created_at", { ascending: false }),
-        supabase.from("achievement_grants").select("achievement_id, user_id"),
       ]);
       setProfiles((p.data as Profile[]) || []);
       setRoles((r.data as any) || []);
@@ -108,8 +106,6 @@ export default function Index() {
       setInventory((inv.data as InventoryItem[]) || []);
       setPlants((pl.data as GardenPlant[]) || []);
       setButtons((btn.data as TabButton[]) || []);
-      setAchievements((a.data as Achievement[]) || []);
-      setGrants((g.data as Grant[]) || []);
       const mine = (p.data as Profile[] | null)?.find((x) => x.user_id === userId);
       if (mine) setMe(mine);
       const myR = (r.data as any[])?.filter((x) => x.user_id === userId) || [];
