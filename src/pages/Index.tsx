@@ -105,7 +105,7 @@ export default function Index() {
       setPlants((pl.data as GardenPlant[]) || []);
       setButtons((btn.data as TabButton[]) || []);
       const mine = (p.data as Profile[] | null)?.find((x) => x.user_id === userId);
-      if (mine) setMe(mine);
+      if (mine) { setMe(mine); if (!(mine as any).tutorial_seen) setShowTutorial(true); }
       const myR = (r.data as any[])?.filter((x) => x.user_id === userId) || [];
       const order = ["owner", "co_owner", "dev", "member", "custom"];
       myR.sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role));
