@@ -193,150 +193,119 @@ export default function Index() {
   return (
     <div className={`min-h-screen bg-background text-foreground ${fontCls(me.font_pref)}`}>
       <BetaDisclaimer />
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
-          <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient">atheris</Link>
-          <div className="flex items-center gap-2">
+      {/* Top Bar (concept-style) */}
+      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
+          <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient shrink-0">atheris</Link>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30 font-mono uppercase tracking-wider">beta</span>
+          <div className="hidden md:flex items-center gap-1.5 ml-2">
             <CurrencyChip kind="noodles" value={me.noodles} />
             <CurrencyChip kind="lumina" value={me.lumina} />
-            <Badge variant="outline" className="font-mono-d">Lv {me.level}</Badge>
+            <Badge variant="outline" className="font-mono-d h-7">Lv {me.level}</Badge>
           </div>
-          <div className="ml-auto flex items-center gap-2 flex-wrap">
+          <div className="ml-auto flex items-center gap-2">
+            <AeroButton userId={userId} isStaff={isStaff} />
+            <Button size="sm" variant="ghost" onClick={() => setShowTutorial(true)} className="gap-1.5">
+              <BookOpen className="h-4 w-4" /> <span className="hidden sm:inline">Tutorial</span>
+            </Button>
             <Link to="/changelog" className="text-xs text-muted-foreground hover:text-foreground px-2">changelog</Link>
             <Select value={me.font_pref} onValueChange={(v) => updateMe({ font_pref: v })}>
-              <SelectTrigger className="w-[150px] h-9"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-[120px] h-9 hidden lg:flex"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {FONT_OPTIONS.map((f) => <SelectItem key={f.value} value={f.value}><span className={f.cls}>{f.label}</span></SelectItem>)}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2 px-3 h-9 rounded-md border">
-              <span className="text-xs text-muted-foreground">dev build</span>
-              <Switch checked={me.dev_build} onCheckedChange={(v) => updateMe({ dev_build: v })} />
-            </div>
-            <Badge variant="outline" className={roleColor[myRole]}>{roleLabel[myRole]}</Badge>
+            <Badge variant="outline" className={`${roleColor[myRole]} hidden sm:inline-flex`}>{roleLabel[myRole]}</Badge>
             <div className="flex items-center gap-2 pl-2 border-l">
               <div className="h-8 w-8 rounded-full grid place-items-center text-xs font-bold"
                 style={{ background: avatarColor(me.display_name), color: avatarFg(me.display_name) }}>
                 {initials(me.display_name)}
               </div>
-              <span className="text-sm font-medium hidden sm:inline">{me.display_name}</span>
+              <span className="text-sm font-medium hidden md:inline">{me.display_name}</span>
               <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
             </div>
           </div>
         </div>
+        {/* Mobile currency strip */}
+        <div className="md:hidden border-t px-4 py-2 flex items-center gap-1.5 overflow-x-auto">
+          <CurrencyChip kind="noodles" value={me.noodles} />
+          <CurrencyChip kind="lumina" value={me.lumina} />
+          <Badge variant="outline" className="font-mono-d h-7">Lv {me.level}</Badge>
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
-        <Tabs value={topTab} onValueChange={(v) => setTopTab(v as any)}>
-          <TabsList>
-            <TabsTrigger value="tabs">Tabs</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-            <TabsTrigger value="ai">AI Builder</TabsTrigger>
-            <TabsTrigger value="code">Code Runner</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="tabs" className="mt-4">
-            <div className="grid grid-cols-[240px_1fr] gap-4">
-              <aside className="border rounded-lg bg-card p-2 space-y-1 h-fit sticky top-4">
-                <div className="px-2 py-1 text-xs uppercase text-muted-foreground tracking-wide">Tabs</div>
-                <ScrollArea className="max-h-[70vh]">
-                  <div className="space-y-1">
-                    {tabs.map((t) => {
-                      const isMine = t.user_id === userId;
-                      const owner = profilesMap.get(t.user_id);
-                      const ownerRole = rolesMap.get(t.user_id) || "member";
-                      const locked = t.level_lock > me.level;
-                      const isPrivate = !t.is_public && !isMine;
-                      const active = t.id === activeTabId;
-                      return (
-                        <button key={t.id} onClick={() => onTabClick(t)}
-                          className={`w-full text-left px-2 py-1.5 rounded-md flex items-center gap-2 text-sm transition-colors ${
-                            active ? "bg-accent text-accent-foreground" : "hover:bg-muted"
-                          } ${(locked || isPrivate) ? "opacity-60" : ""}`}>
-                          <span className="text-base shrink-0">{t.emoji}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate flex items-center gap-1">
-                              <span className="truncate">{t.name}</span>
-                              {t.kind === "property" && (
-                                <span className="text-[9px] px-1 rounded bg-primary/15 text-primary border border-primary/20 shrink-0">PROP</span>
-                              )}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
-                              {owner?.display_name}
-                              <Badge variant="outline" className={`${roleColor[ownerRole]} text-[9px] h-3.5 px-1`}>{roleLabel[ownerRole]}</Badge>
-                            </div>
-                          </div>
-                          {isPrivate && <EyeOff className="h-3 w-3 shrink-0" />}
-                          {locked && <Lock className="h-3 w-3 shrink-0" />}
-                          {isMine && isDev && tabs.filter((x) => x.user_id === userId).length > 1 && (
-                            <span onClick={(e) => { e.stopPropagation(); deleteTab(t.id); }}
-                              className="text-muted-foreground hover:text-destructive">
-                              <Trash2 className="h-3 w-3" />
-                            </span>
+        <div className="grid md:grid-cols-[240px_1fr] gap-4">
+          <aside className="border rounded-lg bg-card p-2 space-y-1 h-fit md:sticky md:top-[72px]">
+            <div className="px-2 py-1 text-xs uppercase text-muted-foreground tracking-wide">Tabs</div>
+            <ScrollArea className="max-h-[70vh]">
+              <div className="space-y-1">
+                {tabs.map((t) => {
+                  const isMine = t.user_id === userId;
+                  const owner = profilesMap.get(t.user_id);
+                  const ownerRole = rolesMap.get(t.user_id) || "member";
+                  const locked = t.level_lock > me.level;
+                  const isPrivate = !t.is_public && !isMine;
+                  const active = t.id === activeTabId;
+                  return (
+                    <button key={t.id} onClick={() => onTabClick(t)}
+                      className={`w-full text-left px-2 py-1.5 rounded-md flex items-center gap-2 text-sm transition-colors ${
+                        active ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                      } ${(locked || isPrivate) ? "opacity-60" : ""}`}>
+                      <span className="text-base shrink-0">{t.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate flex items-center gap-1">
+                          <span className="truncate">{t.name}</span>
+                          {t.kind === "property" && (
+                            <span className="text-[9px] px-1 rounded bg-primary/15 text-primary border border-primary/20 shrink-0">HOME</span>
                           )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-                {isDev && (
-                  <Dialog open={newTabOpen} onOpenChange={setNewTabOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="w-full mt-2">
-                        <Plus className="h-3.5 w-3.5 mr-1" /> new tab
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader><DialogTitle>What kind of tab?</DialogTitle></DialogHeader>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button onClick={() => createTab("property")}
-                          className="border rounded-lg p-4 text-left hover:bg-muted transition-colors space-y-1">
-                          <div className="text-3xl">🏡</div>
-                          <div className="font-semibold">Property</div>
-                          <div className="text-xs text-muted-foreground">Pre-filled with header, stats, currency, inventory & garden blocks.</div>
-                        </button>
-                        <button onClick={() => createTab("blank")}
-                          className="border rounded-lg p-4 text-left hover:bg-muted transition-colors space-y-1">
-                          <div className="text-3xl">📄</div>
-                          <div className="font-semibold">Blank</div>
-                          <div className="text-xs text-muted-foreground">Empty canvas — add any blocks you want.</div>
-                        </button>
+                        </div>
+                        <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
+                          {owner?.display_name}
+                          <Badge variant="outline" className={`${roleColor[ownerRole]} text-[9px] h-3.5 px-1`}>{roleLabel[ownerRole]}</Badge>
+                        </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-              </aside>
+                      {isPrivate && <EyeOff className="h-3 w-3 shrink-0" />}
+                      {locked && <Lock className="h-3 w-3 shrink-0" />}
+                      {isMine && isDev && t.kind !== "property" && (
+                        <span onClick={(e) => { e.stopPropagation(); deleteTab(t.id); }}
+                          className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-3 w-3" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+            {isDev && (
+              <Button size="sm" variant="outline" className="w-full mt-2" onClick={() => createTab()}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> new tab
+              </Button>
+            )}
+          </aside>
 
-              <section>
-                {activeTab ? (
-                  <PropertyView
-                    tab={activeTab}
-                    mine={activeTab.user_id === userId}
-                    userId={userId}
-                    ownerProfile={profilesMap.get(activeTab.user_id) as any}
-                    meProfile={me as any}
-                    blocks={blocks}
-                    inventory={inventory}
-                    plants={plants}
-                    buttons={buttons}
-                    onRename={(n) => supabase.from("user_tabs").update({ name: n }).eq("id", activeTab.id)}
-                    onEmoji={(e) => supabase.from("user_tabs").update({ emoji: e }).eq("id", activeTab.id)}
-                    onTogglePublic={(v) => supabase.from("user_tabs").update({ is_public: v }).eq("id", activeTab.id)}
-                  />
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">Select a property</div>
-                )}
-              </section>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="achievements" className="mt-4">
-            <AchievementsView isStaff={isStaff} userId={userId} achievements={achievements}
-              grants={grants} profiles={profiles} rolesMap={rolesMap} />
-          </TabsContent>
-          <TabsContent value="ai" className="mt-4"><AiBuilder /></TabsContent>
-          <TabsContent value="code" className="mt-4"><CodeRunner /></TabsContent>
-        </Tabs>
+          <section>
+            {activeTab ? (
+              <PropertyView
+                tab={activeTab}
+                mine={activeTab.user_id === userId}
+                userId={userId}
+                ownerProfile={profilesMap.get(activeTab.user_id) as any}
+                meProfile={me as any}
+                blocks={blocks}
+                inventory={inventory}
+                plants={plants}
+                buttons={buttons}
+                onRename={(n) => supabase.from("user_tabs").update({ name: n }).eq("id", activeTab.id)}
+                onEmoji={(e) => supabase.from("user_tabs").update({ emoji: e }).eq("id", activeTab.id)}
+                onTogglePublic={(v) => supabase.from("user_tabs").update({ is_public: v }).eq("id", activeTab.id)}
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">Select a tab</div>
+            )}
+          </section>
+        </div>
       </main>
 
       <CornerChat userId={userId} profilesMap={profilesMap} rolesMap={rolesMap} />
@@ -344,6 +313,7 @@ export default function Index() {
       {activeTab && activeTab.user_id === userId && (
         <BuilderDock tabId={activeTab.id} userId={userId} blocks={blocks} />
       )}
+      {showTutorial && <Tutorial userId={userId} onClose={() => setShowTutorial(false)} />}
     </div>
   );
 }
