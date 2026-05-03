@@ -3,26 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { CornerChat, roleColor, roleLabel, avatarColor, avatarFg, initials } from "@/components/CornerChat";
 import { RealtimeCursors } from "@/components/RealtimeCursors";
 import { BetaDisclaimer } from "@/components/BetaDisclaimer";
+import { AeroButton } from "@/components/AeroButton";
+import { Tutorial } from "@/components/Tutorial";
 import { PropertyView } from "@/components/property/PropertyView";
 import { BuilderDock } from "@/components/property/BuilderDock";
 import { TabBlock, InventoryItem, GardenPlant, TabButton } from "@/components/property/types";
 import { Link } from "react-router-dom";
-import EmojiPicker from "emoji-picker-react";
 import {
-  LogOut, Sparkles, Play, Square, Plus, Trash2, Lock, EyeOff, Trophy, Wand2, Code2, Award,
+  LogOut, Plus, Trash2, Lock, EyeOff, BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 
