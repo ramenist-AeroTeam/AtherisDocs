@@ -274,7 +274,7 @@ export default function Index() {
       </main>
 
       <CornerChat userId={userId} profilesMap={profilesMap} rolesMap={rolesMap} />
-      <RealtimeCursors userId={userId} displayName={me.display_name} />
+      <RealtimeCursors userId={userId} displayName={me.display_name} scope={activeTabId || "lobby"} />
       {activeTab && activeTab.user_id === userId && (
         <BuilderDock tabId={activeTab.id} userId={userId} blocks={blocks} />
       )}
