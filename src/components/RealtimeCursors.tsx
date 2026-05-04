@@ -60,7 +60,7 @@ export function RealtimeCursors({ userId, displayName, scope }: { userId: string
       onLeave();
       supabase.removeChannel(ch);
     };
-  }, [userId, displayName]);
+  }, [userId, displayName, scope]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[60]">
