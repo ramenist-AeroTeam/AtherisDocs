@@ -1,0 +1,1 @@
+ALTER TABLE public.user_tabs DROP CONSTRAINT IF EXISTS user_tabs_user_id_key;
