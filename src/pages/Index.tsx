@@ -183,13 +183,6 @@ export default function Index() {
               <BookOpen className="h-4 w-4" /> <span className="hidden sm:inline">Tutorial</span>
             </Button>
             <Link to="/changelog" className="text-xs text-muted-foreground hover:text-foreground px-2">changelog</Link>
-            <Select value={me.font_pref} onValueChange={(v) => updateMe({ font_pref: v })}>
-              <SelectTrigger className="w-[120px] h-9 hidden lg:flex"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {FONT_OPTIONS.map((f) => <SelectItem key={f.value} value={f.value}><span className={f.cls}>{f.label}</span></SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Badge variant="outline" className={`${roleColor[myRole]} hidden sm:inline-flex`}>{roleLabel[myRole]}</Badge>
             <div className="flex items-center gap-2 pl-2 border-l">
               <div className="h-8 w-8 rounded-full grid place-items-center text-xs font-bold"
                 style={{ background: avatarColor(me.display_name), color: avatarFg(me.display_name) }}>
