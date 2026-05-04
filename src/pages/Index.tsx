@@ -202,51 +202,49 @@ export default function Index() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
-        <div className="grid md:grid-cols-[240px_1fr] gap-4">
-          <aside className="border rounded-lg bg-card p-2 space-y-1 h-fit md:sticky md:top-[72px]">
-            <div className="px-2 py-1 text-xs uppercase text-muted-foreground tracking-wide">Tabs</div>
+        <div className="grid md:grid-cols-[200px_1fr] gap-6">
+          <aside className="h-fit md:sticky md:top-[72px]">
+            <div className="px-1 py-1 text-xs font-semibold text-muted-foreground tracking-wide">Tabs</div>
             <ScrollArea className="max-h-[70vh]">
-              <div className="space-y-1">
+              <div className="space-y-2 pr-1">
                 {tabs.map((t) => {
                   const isMine = t.user_id === userId;
                   const owner = profilesMap.get(t.user_id);
-                  const ownerRole = rolesMap.get(t.user_id) || "member";
                   const locked = t.level_lock > me.level;
                   const isPrivate = !t.is_public && !isMine;
                   const active = t.id === activeTabId;
+                  const isNew = (Date.now() - new Date((t as any).created_at || 0).getTime()) < 1000 * 60 * 60 * 48;
                   return (
-                    <button key={t.id} onClick={() => onTabClick(t)}
-                      className={`w-full text-left px-2 py-1.5 rounded-md flex items-center gap-2 text-sm transition-colors ${
-                        active ? "bg-accent text-accent-foreground" : "hover:bg-muted"
-                      } ${(locked || isPrivate) ? "opacity-60" : ""}`}>
-                      <span className="text-base shrink-0">{t.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate flex items-center gap-1">
-                          <span className="truncate">{t.name}</span>
-                          {t.kind === "property" && (
-                            <span className="text-[9px] px-1 rounded bg-primary/15 text-primary border border-primary/20 shrink-0">HOME</span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
-                          {owner?.display_name}
-                          <Badge variant="outline" className={`${roleColor[ownerRole]} text-[9px] h-3.5 px-1`}>{roleLabel[ownerRole]}</Badge>
-                        </div>
-                      </div>
-                      {isPrivate && <EyeOff className="h-3 w-3 shrink-0" />}
-                      {locked && <Lock className="h-3 w-3 shrink-0" />}
-                      {isMine && isDev && t.kind !== "property" && (
-                        <span onClick={(e) => { e.stopPropagation(); deleteTab(t.id); }}
-                          className="text-muted-foreground hover:text-destructive">
-                          <Trash2 className="h-3 w-3" />
-                        </span>
+                    <div key={t.id} className="relative group">
+                      {isNew && !active && (
+                        <span className="absolute -top-1.5 -right-1 z-10 text-[9px] font-bold px-1.5 py-0.5 rounded bg-destructive text-destructive-foreground shadow-soft">NEW</span>
                       )}
-                    </button>
+                      <button onClick={() => onTabClick(t)}
+                        className={`w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 text-sm border transition-all shadow-soft ${
+                          active
+                            ? "bg-primary/10 border-primary/40 text-foreground ring-1 ring-primary/30"
+                            : "bg-card hover:bg-muted/60 border-border"
+                        } ${(locked || isPrivate) ? "opacity-60" : ""}`}
+                        title={owner?.display_name}
+                      >
+                        <span className="text-base shrink-0">{t.emoji}</span>
+                        <span className="flex-1 min-w-0 font-medium truncate">{t.name}</span>
+                        {isPrivate && <EyeOff className="h-3 w-3 shrink-0" />}
+                        {locked && <Lock className="h-3 w-3 shrink-0" />}
+                      </button>
+                      {isMine && isDev && t.kind !== "property" && (
+                        <button onClick={() => deleteTab(t.id)}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 h-6 w-6 grid place-items-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </ScrollArea>
             {isDev && (
-              <Button size="sm" variant="outline" className="w-full mt-2" onClick={() => createTab()}>
+              <Button size="sm" variant="outline" className="w-full mt-3 rounded-lg" onClick={() => createTab()}>
                 <Plus className="h-3.5 w-3.5 mr-1" /> new tab
               </Button>
             )}
