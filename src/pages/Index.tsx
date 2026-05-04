@@ -31,7 +31,7 @@ type Profile = {
 type UserTab = {
   id: string; user_id: string; name: string; emoji: string; content: string;
   is_public: boolean; level_lock: number; position: number;
-  kind: "property" | "blank";
+  kind: "property" | "blank"; created_at?: string;
 };
 
 const FONT_OPTIONS = [
