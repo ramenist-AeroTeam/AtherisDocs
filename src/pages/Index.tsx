@@ -203,7 +203,7 @@ export default function Index() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 pb-24">
         <div className="grid md:grid-cols-[200px_1fr] gap-6">
-          <aside className="h-fit md:sticky md:top-[72px]">
+          <aside data-tour="tabs" className="h-fit md:sticky md:top-[72px]">
             <div className="px-1 py-1 text-xs font-semibold text-muted-foreground tracking-wide">Tabs</div>
             <ScrollArea className="max-h-[70vh]">
               <div className="space-y-2 pr-1">
