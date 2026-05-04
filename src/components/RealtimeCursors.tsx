@@ -10,14 +10,16 @@ function nameColor(name: string) {
   return `hsl(${hues[h]} 75% 55%)`;
 }
 
-export function RealtimeCursors({ userId, displayName }: { userId: string; displayName: string }) {
+export function RealtimeCursors({ userId, displayName, scope }: { userId: string; displayName: string; scope: string }) {
   const [cursors, setCursors] = useState<Record<string, Cursor>>({});
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastSent = useRef(0);
 
   useEffect(() => {
+    if (!scope) return;
+    setCursors({});
     const color = nameColor(displayName || userId);
-    const ch = supabase.channel("atheris-cursors", { config: { broadcast: { self: false } } });
+    const ch = supabase.channel(`atheris-cursors:${scope}`, { config: { broadcast: { self: false } } });
     channelRef.current = ch;
     ch.on("broadcast", { event: "cursor" }, (payload) => {
       const c = payload.payload as Cursor;
@@ -58,7 +60,7 @@ export function RealtimeCursors({ userId, displayName }: { userId: string; displ
       onLeave();
       supabase.removeChannel(ch);
     };
-  }, [userId, displayName]);
+  }, [userId, displayName, scope]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-[60]">

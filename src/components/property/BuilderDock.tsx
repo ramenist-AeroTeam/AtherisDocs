@@ -127,7 +127,7 @@ export function BuilderDock({
   };
 
   return (
-    <div className={`fixed right-4 bottom-4 z-40 transition-all ${open ? "w-72" : "w-12"}`}>
+    <div data-tour="builder" className={`fixed right-4 bottom-4 z-40 transition-all ${open ? "w-72" : "w-12"}`}>
       <div className="rounded-xl border bg-card shadow-pop overflow-hidden">
         <div className="flex items-center gap-2 px-3 h-10 border-b bg-gradient-to-r from-primary/10 to-transparent">
           {open && <span className="font-semibold text-sm">🛠️ Builder</span>}
