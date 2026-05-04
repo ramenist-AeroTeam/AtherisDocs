@@ -9,6 +9,20 @@ export type ChangelogEntry = {
 // Hand-maintained. Newest first.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-05-04",
+    version: "0.7.0-beta",
+    title: "Concept-aligned UI + spotlight tutorial + per-tab cursors",
+    tags: ["feature", "design", "fix"],
+    notes: [
+      "Fixed duplicate-key error on tab creation by dropping the unique-user-tab constraint.",
+      "Restyled the sidebar to pill-style cards with a NEW badge for fresh tabs (matches concept).",
+      "Slimmed the top bar — removed the font picker and role badge in header, kept the beta chip, currencies, and avatar.",
+      "Live cursors now scope per-tab — you only see people on the same property as you.",
+      "Replaced the modal tutorial with a guided spotlight tour that highlights real UI (tabs, currencies, Aero, builder).",
+      "All edits already saved live via realtime subscriptions — no more refreshing every 10 seconds.",
+    ],
+  },
+  {
     date: "2026-05-03",
     version: "0.6.0-beta",
     title: "Unified builder + Aero migration + tutorial",
