@@ -172,13 +172,13 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient shrink-0">atheris</Link>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30 font-mono uppercase tracking-wider">beta</span>
-          <div className="hidden md:flex items-center gap-1.5 ml-2">
+          <div data-tour="currency" className="hidden md:flex items-center gap-1.5 ml-2">
             <CurrencyChip kind="noodles" value={me.noodles} />
             <CurrencyChip kind="lumina" value={me.lumina} />
             <Badge variant="outline" className="font-mono-d h-7">Lv {me.level}</Badge>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <AeroButton userId={userId} isStaff={isStaff} />
+            <span data-tour="aero"><AeroButton userId={userId} isStaff={isStaff} /></span>
             <Button size="sm" variant="ghost" onClick={() => setShowTutorial(true)} className="gap-1.5">
               <BookOpen className="h-4 w-4" /> <span className="hidden sm:inline">Tutorial</span>
             </Button>
