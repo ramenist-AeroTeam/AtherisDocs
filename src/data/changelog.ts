@@ -9,6 +9,21 @@ export type ChangelogEntry = {
 // Hand-maintained. Newest first.
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-05-05",
+    version: "0.8.0-beta",
+    title: "Google Docs–style Property + live everything",
+    tags: ["feature", "design", "backend"],
+    notes: [
+      "Replaced the entire app shell. The sidebar of tabs and the brick/block builder are gone — every player has one auto-built Property document.",
+      "New Docs-style format toolbar: Bold, Italic, Underline, Strike, text color, highlight, headings, lists, alignment, fonts, sizes, links, undo/redo. The bar greys out when nothing is selected and lights up when text is selected.",
+      "Live save with 400ms debounce. Edits made in one window appear in another within ~1 second — no refresh.",
+      "Visible mouse cursors are back, redesigned with avatar pills (initials + name) styled to match the concept. Per-property scope.",
+      "Cool startup splash screen with a soft 3-note WebAudio chime. Toggle the chime from the header speaker icon.",
+      "Tutorial spotlight rewritten for the new layout: format bar → currencies → Aero → stat cards.",
+      "Stat cards (Profile, Currency, Inventory, Garden) live below the doc and update in realtime.",
+    ],
+  },
+  {
     date: "2026-05-04",
     version: "0.7.0-beta",
     title: "Concept-aligned UI + spotlight tutorial + per-tab cursors",
