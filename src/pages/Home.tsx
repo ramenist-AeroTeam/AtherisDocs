@@ -45,7 +45,7 @@ export default function Home() {
           <div className="space-y-6">
             <span className="inline-flex items-center gap-1.5 px-3 h-7 rounded-full text-xs font-medium border bg-card/60 backdrop-blur">
               <span className="h-1.5 w-1.5 rounded-full bg-[hsl(142_70%_45%)] pulse-dot" />
-              v0.5 — open beta
+              v0.8 — open beta
             </span>
             <h1 className="font-display text-5xl md:text-6xl font-bold leading-[1.05] tracking-tight">
               Your <span className="text-gradient">mini world</span>,<br /> in tabs.
