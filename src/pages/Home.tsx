@@ -118,10 +118,10 @@ export default function Home() {
       <section className="border-t bg-muted/20">
         <div className="max-w-7xl mx-auto px-4 py-16 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: Boxes, title: "Block-based tabs", body: "Drag-and-drop header, stats, currency, inventory, garden, timers, buttons, and text into any tab." },
-            { icon: Users, title: "Live multiplayer", body: "See everyone's colored cursors and edits in realtime, anywhere on the page." },
-            { icon: MousePointer2, title: "Builder dock", body: "Snap pre-made Purchase, Regular, HTML and Timer pieces straight onto your property." },
-            { icon: Wand2, title: "AI feature builder", body: "Describe a mini-game or widget — Atheris scaffolds runnable HTML for you instantly." },
+            { icon: Boxes, title: "Live Property doc", body: "Your property is a Docs-style document — bold, color, fonts, headings, lists. It saves as you type." },
+            { icon: Users, title: "Live multiplayer", body: "See everyone's avatar cursors and edits in realtime, no refresh ever." },
+            { icon: MousePointer2, title: "Stats attached", body: "Profile, currency, inventory and garden cards live on every property and update automatically." },
+            { icon: Wand2, title: "Aero migration", body: "Played Aero before? Reclaim your old pets and roles — owners review each request." },
           ].map((f) => (
             <div key={f.title} className="rounded-lg border bg-card p-5 space-y-2">
               <div className="h-9 w-9 rounded-md bg-primary/10 text-primary grid place-items-center">
