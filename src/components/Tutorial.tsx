@@ -8,13 +8,13 @@ type Step = { selector?: string; title: string; body: string; placement?: "botto
 const STEPS: Step[] = [
   {
     title: "Welcome to Atheris ✨",
-    body: "Atheris is your tiny social world. Every player gets a Property — your home where stats, currency, inventory and garden live. Let's take a 30-second tour.",
+    body: "Your Property is a live document — like Google Docs, but it also holds your stats, currency, inventory and garden. Let's take a 30-second tour.",
   },
-  { selector: "[data-tour='tabs']", title: "Your Tabs", body: "Switch between properties here. Tabs marked NEW were added recently.", placement: "right" },
+  { selector: "[data-tour='format']", title: "Format like Docs", body: "Select any text in your property and the toolbar lights up. Bold, italic, color, fonts, headings, lists — all the usual stuff.", placement: "bottom" },
   { selector: "[data-tour='currency']", title: "Currencies", body: "🍜 Noodles for purchases, ✦ Lumina for premium upgrades. Earn them by playing.", placement: "bottom" },
   { selector: "[data-tour='aero']", title: "Played Aero before?", body: "Click here to request your old pets and roles back. An owner reviews each request.", placement: "bottom" },
-  { selector: "[data-tour='builder']", title: "The Builder", body: "Click any piece in this dock to instantly drop it onto your property. Try a Purchase Button!", placement: "left" },
-  { title: "You're all set 🎉", body: "Everything saves live — no refresh needed. Go make your property feel like home." },
+  { selector: "[data-tour='stats']", title: "Your stats, attached", body: "These cards live on every property and update in realtime as you play. You can't accidentally delete them.", placement: "top" },
+  { title: "You're all set 🎉", body: "Everything saves live and syncs to other tabs instantly. No refresh ever needed." },
 ];
 
 function useRect(selector?: string) {
@@ -54,10 +54,9 @@ export function Tutorial({ userId, onClose }: { userId: string; onClose: () => v
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // tooltip position
   const pad = 12;
   const tipW = 320;
-  const tipH = 180;
+  const tipH = 200;
   let tipStyle: React.CSSProperties = {
     position: "fixed",
     left: typeof window !== "undefined" ? Math.max(16, window.innerWidth / 2 - tipW / 2) : 16,
@@ -76,7 +75,6 @@ export function Tutorial({ userId, onClose }: { userId: string; onClose: () => v
     tipStyle = { position: "fixed", left, top, width: tipW };
   }
 
-  // spotlight ring
   const ring: React.CSSProperties | null = rect
     ? {
         position: "fixed",
