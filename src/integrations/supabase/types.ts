@@ -425,39 +425,51 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          document: Json
+          editor_theme: Json
           emoji: string
           id: string
           is_public: boolean
           kind: string
+          last_saved_at: string
           level_lock: number
           name: string
           position: number
+          startup_sound: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           content?: string
           created_at?: string
+          document?: Json
+          editor_theme?: Json
           emoji?: string
           id?: string
           is_public?: boolean
           kind?: string
+          last_saved_at?: string
           level_lock?: number
           name?: string
           position?: number
+          startup_sound?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          document?: Json
+          editor_theme?: Json
           emoji?: string
           id?: string
           is_public?: boolean
           kind?: string
+          last_saved_at?: string
           level_lock?: number
           name?: string
           position?: number
+          startup_sound?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -468,6 +480,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_auto_property: {
+        Args: { _display_name?: string; _user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
