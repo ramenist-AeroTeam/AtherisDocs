@@ -17,7 +17,6 @@ type Profile = {
   user_id: string; email: string | null; display_name: string; avatar_emoji: string;
   level: number; xp: number; noodles: number; lumina: number;
   font_pref: string; dev_build: boolean; tutorial_seen?: boolean;
-  startup_sound?: boolean;
 };
 
 export default function Index() {
@@ -30,6 +29,7 @@ export default function Index() {
   const [propertyId, setPropertyId] = useState<string>("");
   const [propertyOwner, setPropertyOwner] = useState<string>("");
   const [showTutorial, setShowTutorial] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
 
   const profilesMap = useMemo(() => new Map(profiles.map((p) => [p.user_id, p])), [profiles]);
   const rolesMap = useMemo(() => {
@@ -62,7 +62,7 @@ export default function Index() {
       const [p, r, t] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("user_roles").select("user_id, role"),
-        supabase.from("user_tabs").select("id,user_id").eq("user_id", userId).eq("kind", "property").order("created_at").limit(1),
+        supabase.from("user_tabs").select("id,user_id,startup_sound").eq("user_id", userId).eq("kind", "property").order("created_at").limit(1),
       ]);
       setProfiles((p.data as Profile[]) || []);
       setRoles((r.data as any) || []);
@@ -79,6 +79,7 @@ export default function Index() {
       if (prop) {
         setPropertyId(prop.id);
         setPropertyOwner(prop.user_id);
+        setSoundOn(prop.startup_sound !== false);
       }
     };
     load();
@@ -95,15 +96,15 @@ export default function Index() {
   const signOut = async () => { await supabase.auth.signOut(); nav("/auth"); };
 
   const toggleSound = async () => {
-    if (!me) return;
-    const next = !(me.startup_sound !== false);
-    setMe({ ...me, startup_sound: next });
-    await supabase.from("profiles").update({ startup_sound: next }).eq("user_id", userId!);
+    if (!propertyId) return;
+    const next = !soundOn;
+    setSoundOn(next);
+    await supabase.from("user_tabs").update({ startup_sound: next }).eq("id", propertyId);
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Splash ready={ready} soundEnabled={me?.startup_sound !== false} />
+      <Splash ready={ready} soundEnabled={soundOn} />
       {ready && (
         <>
           <BetaDisclaimer />
@@ -119,8 +120,8 @@ export default function Index() {
               </div>
               <div className="ml-auto flex items-center gap-2">
                 <span data-tour="aero"><AeroButton userId={userId!} isStaff={isStaff} /></span>
-                <Button size="icon" variant="ghost" onClick={toggleSound} title={me!.startup_sound !== false ? "Sound on" : "Sound off"}>
-                  {me!.startup_sound !== false ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                <Button size="icon" variant="ghost" onClick={toggleSound} title={soundOn ? "Sound on" : "Sound off"}>
+                  {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => setShowTutorial(true)} className="gap-1.5">
                   <BookOpen className="h-4 w-4" /> <span className="hidden sm:inline">Tutorial</span>
