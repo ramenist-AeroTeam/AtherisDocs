@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CornerChat, avatarColor, avatarFg, initials } from "@/components/CornerChat";
+import { CornerChat } from "@/components/CornerChat";
 import { RealtimeCursors } from "@/components/RealtimeCursors";
 import { BetaDisclaimer } from "@/components/BetaDisclaimer";
 import { AeroButton } from "@/components/AeroButton";
