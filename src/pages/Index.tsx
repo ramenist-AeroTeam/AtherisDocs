@@ -82,7 +82,6 @@ export default function Index() {
       const order = ["owner", "co_owner", "dev", "member", "custom"];
       myR.sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role));
       if (myR[0]) setMyRole(myR[0].role);
-      const prop = (t.data as any[])?.[0];
       if (prop) {
         setPropertyId(prop.id);
         setPropertyOwner(prop.user_id);
