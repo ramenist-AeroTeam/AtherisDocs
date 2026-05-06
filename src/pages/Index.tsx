@@ -11,10 +11,13 @@ import { Tutorial } from "@/components/Tutorial";
 import { Splash } from "@/components/Splash";
 import { PropertyDoc } from "@/components/editor/PropertyDoc";
 import { StatCards } from "@/components/editor/StatCards";
+import { PropertyTabBar } from "@/components/PropertyTabBar";
+import { AvatarUpload } from "@/components/AvatarUpload";
 import { LogOut, BookOpen, Volume2, VolumeX } from "lucide-react";
 
 type Profile = {
   user_id: string; email: string | null; display_name: string; avatar_emoji: string;
+  avatar_url: string | null;
   level: number; xp: number; noodles: number; lumina: number;
   font_pref: string; dev_build: boolean; tutorial_seen?: boolean;
 };
@@ -134,10 +137,12 @@ export default function Index() {
                 </Button>
                 <Link to="/changelog" className="text-xs text-muted-foreground hover:text-foreground px-2 hidden sm:inline">changelog</Link>
                 <div className="flex items-center gap-2 pl-2 border-l">
-                  <div className="h-8 w-8 rounded-full grid place-items-center text-xs font-bold"
-                    style={{ background: avatarColor(me!.display_name), color: avatarFg(me!.display_name) }}>
-                    {initials(me!.display_name)}
-                  </div>
+                  <AvatarUpload
+                    userId={userId!}
+                    displayName={me!.display_name}
+                    avatarUrl={me!.avatar_url}
+                    onChange={(url) => setMe((m) => m ? { ...m, avatar_url: url } : m)}
+                  />
                   <span className="text-sm font-medium hidden md:inline">{me!.display_name}</span>
                   <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
                 </div>
@@ -150,13 +155,19 @@ export default function Index() {
             </div>
           </header>
 
-          <main>
+          <PropertyTabBar
+            currentId={propertyId}
+            myUserId={userId!}
+            onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); }}
+          />
+
+          <main className="ml-10 md:ml-56 transition-[margin]">
             <PropertyDoc propertyId={propertyId} mine={propertyOwner === userId} ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"} />
             <StatCards ownerId={propertyOwner} />
           </main>
 
           <CornerChat userId={userId!} profilesMap={profilesMap} rolesMap={rolesMap} />
-          <RealtimeCursors userId={userId!} displayName={me!.display_name} scope={`property:${propertyId}`} />
+          <RealtimeCursors userId={userId!} displayName={me!.display_name} avatarUrl={me!.avatar_url} scope={`property:${propertyId}`} />
           {showTutorial && <Tutorial userId={userId!} onClose={() => setShowTutorial(false)} />}
         </>
       )}
