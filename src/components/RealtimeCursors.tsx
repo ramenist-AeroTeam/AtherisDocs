@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-type Cursor = { id: string; name: string; color: string; x: number; y: number; t: number };
+type Cursor = { id: string; name: string; color: string; avatar?: string | null; x: number; y: number; t: number };
 
 function nameColor(name: string) {
   const hues = [10, 40, 80, 140, 200, 250, 290, 320, 0, 180];
