@@ -239,6 +239,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_emoji: string
+          avatar_url: string | null
           created_at: string
           dev_build: boolean
           display_name: string
@@ -255,6 +256,7 @@ export type Database = {
         }
         Insert: {
           avatar_emoji?: string
+          avatar_url?: string | null
           created_at?: string
           dev_build?: boolean
           display_name?: string
@@ -271,6 +273,7 @@ export type Database = {
         }
         Update: {
           avatar_emoji?: string
+          avatar_url?: string | null
           created_at?: string
           dev_build?: boolean
           display_name?: string
