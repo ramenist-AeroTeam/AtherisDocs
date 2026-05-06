@@ -19,8 +19,21 @@ const FONTS = [
 ];
 const SIZES = ["1", "2", "3", "4", "5", "6", "7"];
 const SIZE_LABELS: Record<string, string> = { "1": "10", "2": "13", "3": "16", "4": "18", "5": "24", "6": "32", "7": "48" };
-const TEXT_COLORS = ["#111827", "#6b7280", "#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899"];
-const HIGHLIGHT_COLORS = ["transparent", "#fde68a", "#bbf7d0", "#bae6fd", "#fbcfe8", "#ddd6fe", "#fecaca"];
+const TEXT_COLORS = [
+  "#000000","#434343","#666666","#999999","#b7b7b7","#cccccc","#d9d9d9","#efefef","#f3f3f3","#ffffff",
+  "#980000","#ff0000","#ff9900","#ffff00","#00ff00","#00ffff","#4a86e8","#0000ff","#9900ff","#ff00ff",
+  "#e6b8af","#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc","#f9cb9c",
+  "#dd7e6b","#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd","#f6b26b",
+  "#cc4125","#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0","#e69138",
+  "#a61c00","#cc0000","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79","#b45f06",
+  "#85200c","#990000","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47","#783f04",
+];
+const HIGHLIGHT_COLORS = [
+  "transparent",
+  "#ffffff","#000000","#fff2cc","#fce5cd","#f4cccc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc",
+  "#fff475","#ffe599","#fdcfa1","#f6b26b","#e06666","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0",
+  "#ffeb3b","#ffc107","#ff9800","#ff5722","#f44336","#4caf50","#009688","#03a9f4","#3f51b5","#9c27b0",
+];
 
 export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElement> }) {
   const [sel, setSel] = useState<SelState>({ hasRange: false, bold: false, italic: false, underline: false, strike: false });

@@ -14,7 +14,7 @@ function initials(n: string) {
   return (n || "?").trim().split(/\s+/).map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function RealtimeCursors({ userId, displayName, scope }: { userId: string; displayName: string; scope: string }) {
+export function RealtimeCursors({ userId, displayName, avatarUrl, scope }: { userId: string; displayName: string; avatarUrl?: string | null; scope: string }) {
   const [cursors, setCursors] = useState<Record<string, Cursor>>({});
   const [mounted, setMounted] = useState(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -29,6 +29,7 @@ export function RealtimeCursors({ userId, displayName, scope }: { userId: string
     const color = nameColor(displayName || userId);
     const ch = supabase.channel(`atheris-cursors:${scope}`, { config: { broadcast: { self: false } } });
     channelRef.current = ch;
+    const me = (): Cursor => ({ id: userId, name: displayName, color, avatar: avatarUrl || null, x: lastPos.current.x, y: lastPos.current.y, t: performance.now() });
     ch.on("broadcast", { event: "cursor" }, (payload) => {
       const c = payload.payload as Cursor;
       if (c.id === userId) return;
@@ -39,18 +40,11 @@ export function RealtimeCursors({ userId, displayName, scope }: { userId: string
     }).on("broadcast", { event: "hello" }, (payload) => {
       const c = payload.payload as Cursor;
       if (c.id === userId) return;
-      // respond so newcomer sees us
-      ch.send({
-        type: "broadcast", event: "cursor",
-        payload: { id: userId, name: displayName, color, x: lastPos.current.x, y: lastPos.current.y, t: performance.now() } satisfies Cursor,
-      });
+      ch.send({ type: "broadcast", event: "cursor", payload: me() });
       setCursors((prev) => ({ ...prev, [c.id]: c }));
     }).subscribe((status) => {
       if (status === "SUBSCRIBED") {
-        ch.send({
-          type: "broadcast", event: "hello",
-          payload: { id: userId, name: displayName, color, x: lastPos.current.x, y: lastPos.current.y, t: performance.now() } satisfies Cursor,
-        });
+        ch.send({ type: "broadcast", event: "hello", payload: me() });
       }
     });
 
@@ -59,10 +53,7 @@ export function RealtimeCursors({ userId, displayName, scope }: { userId: string
       const now = performance.now();
       if (now - lastSent.current < 40) return;
       lastSent.current = now;
-      ch.send({
-        type: "broadcast", event: "cursor",
-        payload: { id: userId, name: displayName, color, x: e.clientX, y: e.clientY, t: now } satisfies Cursor,
-      });
+      ch.send({ type: "broadcast", event: "cursor", payload: me() });
     };
     const onLeave = () => ch.send({ type: "broadcast", event: "leave", payload: { id: userId } });
     window.addEventListener("mousemove", onMove);
@@ -84,7 +75,7 @@ export function RealtimeCursors({ userId, displayName, scope }: { userId: string
       onLeave();
       supabase.removeChannel(ch);
     };
-  }, [userId, displayName, scope]);
+  }, [userId, displayName, avatarUrl, scope]);
 
   if (!mounted) return null;
 
@@ -95,17 +86,23 @@ export function RealtimeCursors({ userId, displayName, scope }: { userId: string
           style={{ transform: `translate3d(${c.x}px, ${c.y}px, 0)`, willChange: "transform" }}
           className="absolute top-0 left-0 transition-transform duration-100 ease-linear"
         >
-          {/* Cursor arrow */}
-          <svg width="22" height="24" viewBox="0 0 22 24" style={{ filter: "drop-shadow(0 2px 4px rgb(0 0 0 / 0.25))" }}>
-            <path d="M3 2 L3 19 L8 14 L11 21 L14 20 L11 13 L18 13 Z" fill={c.color} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-          </svg>
-          {/* Avatar + name pill */}
-          <div className="ml-3 -mt-1 inline-flex items-center gap-1.5 pl-0.5 pr-2 py-0.5 rounded-full text-[11px] font-semibold text-white whitespace-nowrap"
+          {/* Teardrop avatar cursor */}
+          <div className="relative" style={{ filter: "drop-shadow(0 4px 8px rgb(0 0 0 / 0.25))" }}>
+            <svg width="40" height="46" viewBox="0 0 40 46" className="absolute top-0 left-0">
+              <path d="M4 4 C4 22 14 36 20 44 C26 36 36 22 36 4 Z"
+                fill={c.color} stroke="white" strokeWidth="2.5" strokeLinejoin="round" />
+            </svg>
+            <div className="absolute" style={{ top: 4, left: 8, width: 24, height: 24 }}>
+              <div className="h-6 w-6 rounded-full overflow-hidden grid place-items-center text-[9px] font-bold text-white bg-white/30 border-2 border-white">
+                {c.avatar
+                  ? <img src={c.avatar} alt="" className="h-full w-full object-cover" />
+                  : initials(c.name)}
+              </div>
+            </div>
+          </div>
+          <div className="ml-1 mt-1 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold text-white whitespace-nowrap"
             style={{ background: c.color, boxShadow: "0 4px 12px rgb(0 0 0 / 0.18)" }}>
-            <span className="h-5 w-5 rounded-full bg-white/30 grid place-items-center text-[9px] font-bold">
-              {initials(c.name)}
-            </span>
-            <span>{c.name}</span>
+            {c.name}
           </div>
         </div>
       ))}
