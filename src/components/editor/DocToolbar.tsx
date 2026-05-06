@@ -219,11 +219,12 @@ function Swatch({ colors, onPick, disabled, title, icon }: { colors: string[]; o
       {open && !disabled && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute top-9 left-0 z-40 grid grid-cols-4 gap-1 p-2 rounded-md border bg-popover shadow-pop">
-            {colors.map((c) => (
-              <button key={c} onMouseDown={(e) => e.preventDefault()}
+          <div className="absolute top-9 left-0 z-40 p-2 rounded-md border bg-popover shadow-pop"
+            style={{ display: "grid", gridTemplateColumns: "repeat(10, minmax(0, 1fr))", gap: 4, width: 240 }}>
+            {colors.map((c, i) => (
+              <button key={`${c}-${i}`} onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { onPick(c); setOpen(false); }}
-                className="h-6 w-6 rounded border"
+                className="h-5 w-5 rounded-sm border border-border/60 hover:scale-110 transition"
                 style={{ background: c === "transparent" ? "repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 0/8px 8px" : c }}
                 title={c}
               />
