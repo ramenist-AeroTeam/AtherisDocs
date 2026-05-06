@@ -62,8 +62,15 @@ export default function Index() {
       const [p, r, t] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("user_roles").select("user_id, role"),
-        supabase.from("user_tabs").select("id,user_id,startup_sound").eq("user_id", userId).eq("kind", "property").order("created_at").limit(1),
+        supabase.from("user_tabs").select("id,user_id,startup_sound").eq("user_id", userId).order("created_at").limit(1),
       ]);
+      let prop = (t.data as any[])?.[0];
+      if (!prop) {
+        const { data: created } = await supabase.from("user_tabs")
+          .insert({ user_id: userId, kind: "property", name: "My Property", emoji: "🏡" })
+          .select("id,user_id,startup_sound").maybeSingle();
+        if (created) prop = created;
+      }
       setProfiles((p.data as Profile[]) || []);
       setRoles((r.data as any) || []);
       const mine = (p.data as Profile[] | null)?.find((x) => x.user_id === userId);
@@ -75,7 +82,6 @@ export default function Index() {
       const order = ["owner", "co_owner", "dev", "member", "custom"];
       myR.sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role));
       if (myR[0]) setMyRole(myR[0].role);
-      const prop = (t.data as any[])?.[0];
       if (prop) {
         setPropertyId(prop.id);
         setPropertyOwner(prop.user_id);
