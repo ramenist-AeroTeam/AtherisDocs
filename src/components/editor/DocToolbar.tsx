@@ -326,3 +326,34 @@ function Swatch({ colors, onPick, disabled, title, icon }: { colors: string[]; o
     </div>
   );
 }
+
+function GradientPicker({ onPick, disabled, title, icon }: { onPick: (g: string) => void; disabled?: boolean; title?: string; icon: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button type="button" disabled={disabled} title={title}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setOpen((o) => !o)}
+        className={`h-8 w-8 grid place-items-center rounded-md transition-colors ${
+          disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"
+        }`}>
+        {icon}
+      </button>
+      {open && !disabled && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute top-9 left-0 z-40 p-2 rounded-md border bg-popover shadow-pop w-56 space-y-1">
+            {GRADIENTS.map((g) => (
+              <button key={g.l} onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { onPick(g.v); setOpen(false); }}
+                className="w-full flex items-center gap-2 p-1 rounded hover:bg-muted text-left">
+                <span className="h-5 w-12 rounded border border-border/40" style={{ backgroundImage: g.v }} />
+                <span className="text-xs font-medium">{g.l}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
