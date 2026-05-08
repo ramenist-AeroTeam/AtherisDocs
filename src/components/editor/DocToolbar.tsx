@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bold, Italic, Underline, Strikethrough, List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Undo2, Redo2, RemoveFormatting,
-  Heading1, Heading2, Pilcrow, Highlighter, Type,
+  Heading1, Heading2, Pilcrow, Highlighter, Type, Sparkles, AlignJustify,
 } from "lucide-react";
 
 type SelState = {
@@ -34,6 +34,72 @@ const HIGHLIGHT_COLORS = [
   "#fff475","#ffe599","#fdcfa1","#f6b26b","#e06666","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0",
   "#ffeb3b","#ffc107","#ff9800","#ff5722","#f44336","#4caf50","#009688","#03a9f4","#3f51b5","#9c27b0",
 ];
+const GRADIENTS = [
+  { l: "Sunset", v: "linear-gradient(90deg,#ff6b6b,#ffa94d,#ffd43b)" },
+  { l: "Ocean", v: "linear-gradient(90deg,#06b6d4,#3b82f6,#8b5cf6)" },
+  { l: "Candy", v: "linear-gradient(90deg,#ec4899,#a855f7,#3b82f6)" },
+  { l: "Forest", v: "linear-gradient(90deg,#10b981,#84cc16,#eab308)" },
+  { l: "Fire", v: "linear-gradient(90deg,#f43f5e,#f97316,#facc15)" },
+  { l: "Aurora", v: "linear-gradient(90deg,#14b8a6,#22d3ee,#a78bfa,#f472b6)" },
+  { l: "Mono", v: "linear-gradient(90deg,#111827,#6b7280,#9ca3af)" },
+  { l: "Gold", v: "linear-gradient(90deg,#fde047,#f59e0b,#b45309)" },
+];
+const LINE_HEIGHTS = [
+  { l: "1.0", v: "1" }, { l: "1.15", v: "1.15" }, { l: "1.5", v: "1.5" },
+  { l: "1.75", v: "1.75" }, { l: "2.0", v: "2" }, { l: "2.5", v: "2.5" },
+];
+const LETTER_SPACINGS = [
+  { l: "Tight", v: "-0.04em" }, { l: "Normal", v: "0" }, { l: "Wide", v: "0.04em" },
+  { l: "Wider", v: "0.1em" }, { l: "Widest", v: "0.2em" },
+];
+
+function wrapSelection(style: Partial<CSSStyleDeclaration>, dataAttr?: string) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement("span");
+  Object.assign(span.style, style);
+  if (dataAttr) span.setAttribute("data-style", dataAttr);
+  try {
+    span.appendChild(range.extractContents());
+    range.insertNode(span);
+    sel.removeAllRanges();
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    sel.addRange(r);
+  } catch { /* nested rich content */ }
+}
+function applyToBlocks(setter: (el: HTMLElement) => void) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const blocks = new Set<HTMLElement>();
+  const walk = (n: Node) => {
+    if (n.nodeType === 1) {
+      const el = n as HTMLElement;
+      const tag = el.tagName;
+      if (["P","H1","H2","H3","H4","LI","DIV","BLOCKQUOTE"].includes(tag)) blocks.add(el);
+    }
+    if (n.parentElement) {
+      let p: HTMLElement | null = n.parentElement;
+      while (p) {
+        if (["P","H1","H2","H3","H4","LI","DIV","BLOCKQUOTE"].includes(p.tagName)) { blocks.add(p); break; }
+        p = p.parentElement;
+      }
+    }
+  };
+  walk(range.startContainer);
+  walk(range.endContainer);
+  // also intermediate
+  const it = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_ELEMENT);
+  let cur = it.currentNode;
+  while (cur) {
+    if (range.intersectsNode(cur)) walk(cur);
+    cur = it.nextNode() as Node;
+    if (!cur) break;
+  }
+  blocks.forEach(setter);
+}
 
 export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElement> }) {
   const [sel, setSel] = useState<SelState>({ hasRange: false, bold: false, italic: false, underline: false, strike: false });
@@ -116,6 +182,31 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
           icon={<span className="font-bold text-sm leading-none">A</span>} />
         <Swatch disabled={disabled} colors={HIGHLIGHT_COLORS} onPick={(c) => cmd("hiliteColor", c)} title="Highlight"
           icon={<Highlighter className="h-4 w-4" />} />
+        <GradientPicker disabled={disabled} title="Gradient text"
+          icon={<Sparkles className="h-4 w-4" />}
+          onPick={(g) => {
+            if (!sel.hasRange) restore();
+            wrapSelection({
+              backgroundImage: g, backgroundClip: "text",
+              ["webkitBackgroundClip" as any]: "text", color: "transparent",
+            }, "gradient-text");
+          }} />
+        <GradientPicker disabled={disabled} title="Gradient highlight"
+          icon={<span className="text-xs font-bold">▮</span>}
+          onPick={(g) => {
+            if (!sel.hasRange) restore();
+            wrapSelection({ backgroundImage: g, padding: "0 2px", borderRadius: "3px" }, "gradient-bg");
+          }} />
+        <Sep />
+
+        <Select disabled={disabled} ariaLabel="Line height" value=""
+          onChange={(v) => { if (!sel.hasRange) restore(); applyToBlocks((el) => { el.style.lineHeight = v; }); }}
+          options={LINE_HEIGHTS.map((x) => ({ value: x.v, label: x.l }))}
+          placeholder={<><AlignJustify className="h-3.5 w-3.5" /> Line</>} width={88} />
+        <Select disabled={disabled} ariaLabel="Letter spacing" value=""
+          onChange={(v) => { if (!sel.hasRange) restore(); wrapSelection({ letterSpacing: v }, "tracking"); }}
+          options={LETTER_SPACINGS.map((x) => ({ value: x.v, label: x.l }))}
+          placeholder={<><span className="font-mono text-[10px]">A→A</span></>} width={88} />
         <Sep />
 
         <Btn disabled={disabled} onClick={() => cmd("formatBlock", "H1")} title="Heading 1"><Heading1 className="h-4 w-4" /></Btn>
@@ -228,6 +319,37 @@ function Swatch({ colors, onPick, disabled, title, icon }: { colors: string[]; o
                 style={{ background: c === "transparent" ? "repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 0/8px 8px" : c }}
                 title={c}
               />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function GradientPicker({ onPick, disabled, title, icon }: { onPick: (g: string) => void; disabled?: boolean; title?: string; icon: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button type="button" disabled={disabled} title={title}
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setOpen((o) => !o)}
+        className={`h-8 w-8 grid place-items-center rounded-md transition-colors ${
+          disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"
+        }`}>
+        {icon}
+      </button>
+      {open && !disabled && (
+        <>
+          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="absolute top-9 left-0 z-40 p-2 rounded-md border bg-popover shadow-pop w-56 space-y-1">
+            {GRADIENTS.map((g) => (
+              <button key={g.l} onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { onPick(g.v); setOpen(false); }}
+                className="w-full flex items-center gap-2 p-1 rounded hover:bg-muted text-left">
+                <span className="h-5 w-12 rounded border border-border/40" style={{ backgroundImage: g.v }} />
+                <span className="text-xs font-medium">{g.l}</span>
+              </button>
             ))}
           </div>
         </>
