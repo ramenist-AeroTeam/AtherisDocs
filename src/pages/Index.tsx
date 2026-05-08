@@ -31,6 +31,7 @@ export default function Index() {
   const [roles, setRoles] = useState<{ user_id: string; role: string }[]>([]);
   const [propertyId, setPropertyId] = useState<string>("");
   const [propertyOwner, setPropertyOwner] = useState<string>("");
+  const [tabKind, setTabKind] = useState<string>("property");
   const [showTutorial, setShowTutorial] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
 
@@ -65,13 +66,13 @@ export default function Index() {
       const [p, r, t] = await Promise.all([
         supabase.from("profiles").select("*"),
         supabase.from("user_roles").select("user_id, role"),
-        supabase.from("user_tabs").select("id,user_id,startup_sound").eq("user_id", userId).order("created_at").limit(1),
+        supabase.from("user_tabs").select("id,user_id,startup_sound,kind").eq("user_id", userId).order("created_at").limit(1),
       ]);
       let prop = (t.data as any[])?.[0];
       if (!prop) {
         const { data: created } = await supabase.from("user_tabs")
           .insert({ user_id: userId, kind: "property", name: "My Property", emoji: "🏡" })
-          .select("id,user_id,startup_sound").maybeSingle();
+          .select("id,user_id,startup_sound,kind").maybeSingle();
         if (created) prop = created;
       }
       setProfiles((p.data as Profile[]) || []);
@@ -85,9 +86,10 @@ export default function Index() {
       const order = ["owner", "co_owner", "dev", "member", "custom"];
       myR.sort((a: any, b: any) => order.indexOf(a.role) - order.indexOf(b.role));
       if (myR[0]) setMyRole(myR[0].role);
-      if (prop) {
+      if (prop && !propertyId) {
         setPropertyId(prop.id);
         setPropertyOwner(prop.user_id);
+        setTabKind(prop.kind || "property");
         setSoundOn(prop.startup_sound !== false);
       }
     };
