@@ -182,6 +182,31 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
           icon={<span className="font-bold text-sm leading-none">A</span>} />
         <Swatch disabled={disabled} colors={HIGHLIGHT_COLORS} onPick={(c) => cmd("hiliteColor", c)} title="Highlight"
           icon={<Highlighter className="h-4 w-4" />} />
+        <GradientPicker disabled={disabled} title="Gradient text"
+          icon={<Sparkles className="h-4 w-4" />}
+          onPick={(g) => {
+            if (!sel.hasRange) restore();
+            wrapSelection({
+              backgroundImage: g, backgroundClip: "text",
+              ["webkitBackgroundClip" as any]: "text", color: "transparent",
+            }, "gradient-text");
+          }} />
+        <GradientPicker disabled={disabled} title="Gradient highlight"
+          icon={<span className="text-xs font-bold">▮</span>}
+          onPick={(g) => {
+            if (!sel.hasRange) restore();
+            wrapSelection({ backgroundImage: g, padding: "0 2px", borderRadius: "3px" }, "gradient-bg");
+          }} />
+        <Sep />
+
+        <Select disabled={disabled} ariaLabel="Line height" value=""
+          onChange={(v) => { if (!sel.hasRange) restore(); applyToBlocks((el) => { el.style.lineHeight = v; }); }}
+          options={LINE_HEIGHTS.map((x) => ({ value: x.v, label: x.l }))}
+          placeholder={<><AlignJustify className="h-3.5 w-3.5" /> Line</>} width={88} />
+        <Select disabled={disabled} ariaLabel="Letter spacing" value=""
+          onChange={(v) => { if (!sel.hasRange) restore(); wrapSelection({ letterSpacing: v }, "tracking"); }}
+          options={LETTER_SPACINGS.map((x) => ({ value: x.v, label: x.l }))}
+          placeholder={<><span className="font-mono text-[10px]">A→A</span></>} width={88} />
         <Sep />
 
         <Btn disabled={disabled} onClick={() => cmd("formatBlock", "H1")} title="Heading 1"><Heading1 className="h-4 w-4" /></Btn>
