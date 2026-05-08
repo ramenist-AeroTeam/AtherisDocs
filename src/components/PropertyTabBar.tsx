@@ -166,7 +166,8 @@ export function PropertyTabBar({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </aside>
   );
