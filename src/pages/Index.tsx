@@ -13,6 +13,7 @@ import { PropertyDoc } from "@/components/editor/PropertyDoc";
 import { StatCards } from "@/components/editor/StatCards";
 import { PropertyTabBar } from "@/components/PropertyTabBar";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { HtmlTab } from "@/components/HtmlTab";
 import { LogOut, BookOpen, Volume2, VolumeX } from "lucide-react";
 
 type Profile = {
@@ -160,16 +161,20 @@ export default function Index() {
           <PropertyTabBar
             currentId={propertyId}
             myUserId={userId!}
-            onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); }}
+            onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind); }}
           />
 
-          <main className="ml-10 md:ml-56 transition-[margin]">
-            <PropertyDoc propertyId={propertyId} mine={propertyOwner === userId} ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"} />
-            <StatCards ownerId={propertyOwner} />
-          </main>
+          {tabKind === "html" ? (
+            <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
+          ) : (
+            <main className="ml-10 md:ml-56 transition-[margin]">
+              <PropertyDoc propertyId={propertyId} mine={propertyOwner === userId} ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"} />
+              {tabKind === "property" && <StatCards ownerId={propertyOwner} />}
+            </main>
+          )}
 
           <CornerChat userId={userId!} profilesMap={profilesMap} rolesMap={rolesMap} />
-          <RealtimeCursors userId={userId!} displayName={me!.display_name} avatarUrl={me!.avatar_url} scope={`property:${propertyId}`} />
+          <RealtimeCursors userId={userId!} displayName={me!.display_name} scope={`property:${propertyId}`} />
           {showTutorial && <Tutorial userId={userId!} onClose={() => setShowTutorial(false)} />}
         </>
       )}
