@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bold, Italic, Underline, Strikethrough, List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Undo2, Redo2, RemoveFormatting,
-  Heading1, Heading2, Pilcrow, Highlighter, Type,
+  Heading1, Heading2, Pilcrow, Highlighter, Type, Sparkles, AlignJustify,
 } from "lucide-react";
 
 type SelState = {
@@ -34,6 +34,72 @@ const HIGHLIGHT_COLORS = [
   "#fff475","#ffe599","#fdcfa1","#f6b26b","#e06666","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0",
   "#ffeb3b","#ffc107","#ff9800","#ff5722","#f44336","#4caf50","#009688","#03a9f4","#3f51b5","#9c27b0",
 ];
+const GRADIENTS = [
+  { l: "Sunset", v: "linear-gradient(90deg,#ff6b6b,#ffa94d,#ffd43b)" },
+  { l: "Ocean", v: "linear-gradient(90deg,#06b6d4,#3b82f6,#8b5cf6)" },
+  { l: "Candy", v: "linear-gradient(90deg,#ec4899,#a855f7,#3b82f6)" },
+  { l: "Forest", v: "linear-gradient(90deg,#10b981,#84cc16,#eab308)" },
+  { l: "Fire", v: "linear-gradient(90deg,#f43f5e,#f97316,#facc15)" },
+  { l: "Aurora", v: "linear-gradient(90deg,#14b8a6,#22d3ee,#a78bfa,#f472b6)" },
+  { l: "Mono", v: "linear-gradient(90deg,#111827,#6b7280,#9ca3af)" },
+  { l: "Gold", v: "linear-gradient(90deg,#fde047,#f59e0b,#b45309)" },
+];
+const LINE_HEIGHTS = [
+  { l: "1.0", v: "1" }, { l: "1.15", v: "1.15" }, { l: "1.5", v: "1.5" },
+  { l: "1.75", v: "1.75" }, { l: "2.0", v: "2" }, { l: "2.5", v: "2.5" },
+];
+const LETTER_SPACINGS = [
+  { l: "Tight", v: "-0.04em" }, { l: "Normal", v: "0" }, { l: "Wide", v: "0.04em" },
+  { l: "Wider", v: "0.1em" }, { l: "Widest", v: "0.2em" },
+];
+
+function wrapSelection(style: Partial<CSSStyleDeclaration>, dataAttr?: string) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement("span");
+  Object.assign(span.style, style);
+  if (dataAttr) span.setAttribute("data-style", dataAttr);
+  try {
+    span.appendChild(range.extractContents());
+    range.insertNode(span);
+    sel.removeAllRanges();
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    sel.addRange(r);
+  } catch { /* nested rich content */ }
+}
+function applyToBlocks(setter: (el: HTMLElement) => void) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const blocks = new Set<HTMLElement>();
+  const walk = (n: Node) => {
+    if (n.nodeType === 1) {
+      const el = n as HTMLElement;
+      const tag = el.tagName;
+      if (["P","H1","H2","H3","H4","LI","DIV","BLOCKQUOTE"].includes(tag)) blocks.add(el);
+    }
+    if (n.parentElement) {
+      let p: HTMLElement | null = n.parentElement;
+      while (p) {
+        if (["P","H1","H2","H3","H4","LI","DIV","BLOCKQUOTE"].includes(p.tagName)) { blocks.add(p); break; }
+        p = p.parentElement;
+      }
+    }
+  };
+  walk(range.startContainer);
+  walk(range.endContainer);
+  // also intermediate
+  const it = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_ELEMENT);
+  let cur = it.currentNode;
+  while (cur) {
+    if (range.intersectsNode(cur)) walk(cur);
+    cur = it.nextNode() as Node;
+    if (!cur) break;
+  }
+  blocks.forEach(setter);
+}
 
 export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElement> }) {
   const [sel, setSel] = useState<SelState>({ hasRange: false, bold: false, italic: false, underline: false, strike: false });
