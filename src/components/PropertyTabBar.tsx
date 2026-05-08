@@ -130,8 +130,8 @@ export function PropertyTabBar({
         })}
       </div>
 
-      {showCreate && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40" onClick={() => setShowCreate(false)}>
+      {showCreate && createPortal(
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/40" onClick={() => setShowCreate(false)}>
           <div className="bg-card border rounded-lg shadow-pop p-5 w-[360px] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-sm">New tab</h3>
