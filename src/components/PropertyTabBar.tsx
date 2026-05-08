@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronLeft, ChevronRight, Home as HomeIcon, Plus, Trash2, FileText, Zap, X } from "lucide-react";
 import { avatarColor, avatarFg, initials } from "@/components/CornerChat";
