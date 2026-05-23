@@ -27,7 +27,9 @@ export function PropertyTabBar({
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
   const [newKind, setNewKind] = useState<"blank" | "html" | "property">("blank");
+  const [newEmoji, setNewEmoji] = useState<string>("📄");
   const [busy, setBusy] = useState(false);
+  const [emojiEditFor, setEmojiEditFor] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
