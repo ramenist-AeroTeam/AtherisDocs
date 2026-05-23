@@ -81,7 +81,7 @@ export function PropertyTabBar({
   };
 
   return (
-    <aside className={`fixed left-0 top-14 bottom-0 z-20 transition-all ${open ? "w-56" : "w-10"} bg-card/95 backdrop-blur-md border-r flex flex-col`}>
+    <aside className={`shrink-0 self-stretch transition-all ${open ? "w-56" : "w-10"} bg-card border-r flex flex-col relative z-10`}>
       <div className="flex items-center justify-between px-2 h-9 border-b">
         {open && <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Tabs</span>}
         {open && (
