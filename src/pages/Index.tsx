@@ -115,13 +115,13 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       <Splash ready={ready} soundEnabled={soundOn} />
       {ready && (
         <>
           <BetaDisclaimer />
-          {/* App bar */}
-          <header className="border-b bg-card/85 backdrop-blur-md sticky top-0 z-30">
+          {/* App bar (static, not an overlay) */}
+          <header className="border-b bg-card shrink-0 relative z-10">
             <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
               <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient shrink-0">atheris</Link>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30 font-mono uppercase tracking-wider">beta</span>
