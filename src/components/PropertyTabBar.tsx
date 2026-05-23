@@ -121,7 +121,12 @@ export function PropertyTabBar({
               {open && (
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-xs font-medium flex items-center gap-1">
-                    <span>{t.emoji}</span>
+                    <span
+                      role={isMe ? "button" : undefined}
+                      onClick={isMe ? (e) => { e.stopPropagation(); setEmojiEditFor(emojiEditFor === t.id ? null : t.id); } : undefined}
+                      className={isMe ? "cursor-pointer hover:scale-125 transition-transform" : ""}
+                      title={isMe ? "Change emoji" : undefined}
+                    >{t.emoji}</span>
                     <span className="truncate">{t.name}</span>
                   </div>
                   <div className="truncate text-[10px] text-muted-foreground flex items-center gap-1">
