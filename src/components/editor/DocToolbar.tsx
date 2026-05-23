@@ -55,7 +55,7 @@ const LETTER_SPACINGS = [
 
 function wrapSelection(style: Partial<CSSStyleDeclaration>, dataAttr?: string) {
   const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
   const range = sel.getRangeAt(0);
   const span = document.createElement("span");
   Object.assign(span.style, style);
@@ -67,7 +67,62 @@ function wrapSelection(style: Partial<CSSStyleDeclaration>, dataAttr?: string) {
     const r = document.createRange();
     r.selectNodeContents(span);
     sel.addRange(r);
-  } catch { /* nested rich content */ }
+    return span;
+  } catch { return null; }
+}
+
+function applyGradientText(g: string) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement("span");
+  span.setAttribute("data-style", "gradient-text");
+  span.style.setProperty("background-image", g);
+  span.style.setProperty("background-clip", "text");
+  span.style.setProperty("-webkit-background-clip", "text");
+  span.style.setProperty("-webkit-text-fill-color", "transparent");
+  span.style.setProperty("color", "transparent");
+  span.style.setProperty("background-repeat", "no-repeat");
+  try {
+    span.appendChild(range.extractContents());
+    // Strip color/background from descendants so the gradient shows through.
+    span.querySelectorAll<HTMLElement>("*").forEach((el) => {
+      el.style.removeProperty("color");
+      el.style.removeProperty("background");
+      el.style.removeProperty("background-image");
+      el.style.removeProperty("background-color");
+      el.style.setProperty("color", "inherit");
+      el.style.setProperty("background", "transparent");
+      el.style.setProperty("-webkit-text-fill-color", "inherit");
+    });
+    range.insertNode(span);
+    sel.removeAllRanges();
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    sel.addRange(r);
+  } catch { /* noop */ }
+}
+
+function applyGradientHighlight(g: string) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  const range = sel.getRangeAt(0);
+  const span = document.createElement("span");
+  span.setAttribute("data-style", "gradient-bg");
+  span.style.setProperty("background-image", g);
+  span.style.setProperty("background-repeat", "no-repeat");
+  span.style.setProperty("padding", "0 3px");
+  span.style.setProperty("border-radius", "3px");
+  span.style.setProperty("box-decoration-break", "clone");
+  span.style.setProperty("-webkit-box-decoration-break", "clone");
+  try {
+    span.appendChild(range.extractContents());
+    range.insertNode(span);
+    sel.removeAllRanges();
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    sel.addRange(r);
+  } catch { /* noop */ }
 }
 function applyToBlocks(setter: (el: HTMLElement) => void) {
   const sel = window.getSelection();
