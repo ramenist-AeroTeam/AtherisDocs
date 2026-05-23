@@ -53,7 +53,7 @@ export function PropertyTabBar({
   const create = async () => {
     if (!newName.trim()) return;
     setBusy(true);
-    const emoji = newKind === "html" ? "⚡" : newKind === "property" ? "🏡" : "📄";
+    const emoji = newEmoji || (newKind === "html" ? "⚡" : newKind === "property" ? "🏡" : "📄");
     const { data, error } = await supabase.from("user_tabs")
       .insert({ user_id: myUserId, name: newName.trim(), emoji, kind: newKind, is_public: true })
       .select("id,user_id,kind").maybeSingle();
@@ -62,7 +62,13 @@ export function PropertyTabBar({
       onSelect({ id: data.id, user_id: data.user_id, kind: data.kind });
       setShowCreate(false);
       setNewName("");
+      setNewEmoji("📄");
     }
+  };
+
+  const setEmoji = async (tabId: string, emoji: string) => {
+    setEmojiEditFor(null);
+    await supabase.from("user_tabs").update({ emoji }).eq("id", tabId);
   };
 
   const remove = async (t: TabRow, e: React.MouseEvent) => {
