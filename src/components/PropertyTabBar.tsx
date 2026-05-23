@@ -13,6 +13,8 @@ const KIND_ICON: Record<string, React.ReactNode> = {
   html: <Zap className="h-3 w-3" />,
 };
 
+const EMOJI_PRESETS = ["🏡","📄","⚡","✨","📝","📓","📚","🎨","🎮","🎵","🍜","✦","💎","🌸","🌿","🌊","🔥","🌙","⭐","🪐","🧠","🧪","💡","🛠️","📦","🗂️","🧩","🎯","🚀","👾","🐱","🐶","🦊","🐼","🦄","🍀","🍕","☕","🎲","🏆"];
+
 export function PropertyTabBar({
   currentId, myUserId, onSelect,
 }: {
