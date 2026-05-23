@@ -159,9 +159,9 @@ export function PropertyTabBar({
               placeholder="Tab name…"
               className="w-full h-9 px-3 rounded-md border bg-background text-sm mb-3"
             />
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-3 gap-2 mb-3">
               {(["blank", "property", "html"] as const).map((k) => (
-                <button key={k} onClick={() => setNewKind(k)}
+                <button key={k} onClick={() => { setNewKind(k); setNewEmoji(k === "html" ? "⚡" : k === "property" ? "🏡" : "📄"); }}
                   className={`p-2.5 rounded-md border text-xs font-medium flex flex-col items-center gap-1 transition ${
                     newKind === k ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted"
                   }`}>
@@ -173,6 +173,17 @@ export function PropertyTabBar({
                 </button>
               ))}
             </div>
+            <div className="mb-4">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">Emoji <span className="text-base align-middle ml-1">{newEmoji}</span></div>
+              <div className="grid grid-cols-10 gap-1 max-h-32 overflow-y-auto p-1 border rounded-md bg-background">
+                {EMOJI_PRESETS.map((em) => (
+                  <button key={em} onClick={() => setNewEmoji(em)}
+                    className={`h-7 w-7 grid place-items-center rounded text-base hover:bg-muted transition ${newEmoji === em ? "bg-primary/15 ring-1 ring-primary" : ""}`}>
+                    {em}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="flex justify-end gap-2">
               <button onClick={() => setShowCreate(false)} className="h-8 px-3 rounded-md text-sm hover:bg-muted">Cancel</button>
               <button onClick={create} disabled={busy || !newName.trim()}
@@ -180,6 +191,31 @@ export function PropertyTabBar({
                 Create
               </button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {emojiEditFor && createPortal(
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-black/40" onClick={() => setEmojiEditFor(null)}>
+          <div className="bg-card border rounded-lg shadow-pop p-4 w-[320px]" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm">Pick an emoji</h3>
+              <button onClick={() => setEmojiEditFor(null)} className="text-muted-foreground"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="grid grid-cols-10 gap-1 mb-3 max-h-48 overflow-y-auto">
+              {EMOJI_PRESETS.map((em) => (
+                <button key={em} onClick={() => setEmoji(emojiEditFor, em)}
+                  className="h-7 w-7 grid place-items-center rounded text-base hover:bg-muted transition">
+                  {em}
+                </button>
+              ))}
+            </div>
+            <input
+              placeholder="Or type any emoji and press Enter…"
+              onKeyDown={(e) => { if (e.key === "Enter") { const v = (e.target as HTMLInputElement).value.trim(); if (v) setEmoji(emojiEditFor, v); } }}
+              className="w-full h-8 px-2 rounded border bg-background text-sm"
+            />
           </div>
         </div>,
         document.body
