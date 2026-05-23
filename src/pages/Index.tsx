@@ -158,20 +158,28 @@ export default function Index() {
             </div>
           </header>
 
-          <PropertyTabBar
-            currentId={propertyId}
-            myUserId={userId!}
-            onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind); }}
-          />
-
-          {tabKind === "html" ? (
-            <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
-          ) : (
-            <main className="ml-10 md:ml-56 transition-[margin]">
-              <PropertyDoc propertyId={propertyId} mine={propertyOwner === userId} ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"} />
-              {tabKind === "property" && <StatCards ownerId={propertyOwner} />}
-            </main>
-          )}
+          <div className="flex-1 flex min-h-0">
+            <PropertyTabBar
+              currentId={propertyId}
+              myUserId={userId!}
+              onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind); }}
+            />
+            <div className="flex-1 min-w-0 relative overflow-auto">
+              {tabKind === "html" ? (
+                <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
+              ) : (
+                <main>
+                  <PropertyDoc
+                    propertyId={propertyId}
+                    mine={propertyOwner === userId}
+                    ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"}
+                    blank={tabKind === "blank"}
+                  />
+                  {tabKind === "property" && <StatCards ownerId={propertyOwner} />}
+                </main>
+              )}
+            </div>
+          </div>
 
           <CornerChat userId={userId!} profilesMap={profilesMap} rolesMap={rolesMap} />
           <RealtimeCursors userId={userId!} displayName={me!.display_name} scope={`property:${propertyId}`} />
