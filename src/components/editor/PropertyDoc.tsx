@@ -4,7 +4,7 @@ import { DocToolbar } from "./DocToolbar";
 
 const DEFAULT_HTML = `<h1>Welcome to your Property</h1><p>This is your space. Type, format, paste images — anything. It saves live, and your stats stay attached below.</p>`;
 
-export function PropertyDoc({ propertyId, mine, ownerName }: { propertyId: string; mine: boolean; ownerName: string }) {
+export function PropertyDoc({ propertyId, mine, ownerName, blank }: { propertyId: string; mine: boolean; ownerName: string; blank?: boolean }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [html, setHtml] = useState<string>("");
   const [loaded, setLoaded] = useState(false);
@@ -95,7 +95,9 @@ export function PropertyDoc({ propertyId, mine, ownerName }: { propertyId: strin
               pendingRemote.current = null;
             }
           }}
-          className="prose-doc min-h-[40vh] outline-none rounded-lg border bg-card px-8 py-10 shadow-soft focus:ring-2 focus:ring-primary/30 transition-shadow"
+          className={blank
+            ? "prose-doc min-h-[60vh] outline-none px-2 py-4"
+            : "prose-doc min-h-[40vh] outline-none rounded-lg border bg-card px-8 py-10 shadow-soft focus:ring-2 focus:ring-primary/30 transition-shadow"}
         />
       </div>
     </div>

@@ -115,13 +115,13 @@ export default function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       <Splash ready={ready} soundEnabled={soundOn} />
       {ready && (
         <>
           <BetaDisclaimer />
-          {/* App bar */}
-          <header className="border-b bg-card/85 backdrop-blur-md sticky top-0 z-30">
+          {/* App bar (static, not an overlay) */}
+          <header className="border-b bg-card shrink-0 relative z-10">
             <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-3">
               <Link to="/" className="font-display text-2xl font-bold tracking-tight text-gradient shrink-0">atheris</Link>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border border-yellow-500/30 font-mono uppercase tracking-wider">beta</span>
@@ -158,20 +158,28 @@ export default function Index() {
             </div>
           </header>
 
-          <PropertyTabBar
-            currentId={propertyId}
-            myUserId={userId!}
-            onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind); }}
-          />
-
-          {tabKind === "html" ? (
-            <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
-          ) : (
-            <main className="ml-10 md:ml-56 transition-[margin]">
-              <PropertyDoc propertyId={propertyId} mine={propertyOwner === userId} ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"} />
-              {tabKind === "property" && <StatCards ownerId={propertyOwner} />}
-            </main>
-          )}
+          <div className="flex-1 flex min-h-0">
+            <PropertyTabBar
+              currentId={propertyId}
+              myUserId={userId!}
+              onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind); }}
+            />
+            <div className="flex-1 min-w-0 relative overflow-auto">
+              {tabKind === "html" ? (
+                <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
+              ) : (
+                <main>
+                  <PropertyDoc
+                    propertyId={propertyId}
+                    mine={propertyOwner === userId}
+                    ownerName={profilesMap.get(propertyOwner)?.display_name || "Player"}
+                    blank={tabKind === "blank"}
+                  />
+                  {tabKind === "property" && <StatCards ownerId={propertyOwner} />}
+                </main>
+              )}
+            </div>
+          </div>
 
           <CornerChat userId={userId!} profilesMap={profilesMap} rolesMap={rolesMap} />
           <RealtimeCursors userId={userId!} displayName={me!.display_name} scope={`property:${propertyId}`} />
