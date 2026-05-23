@@ -4,7 +4,7 @@ import { DocToolbar } from "./DocToolbar";
 
 const DEFAULT_HTML = `<h1>Welcome to your Property</h1><p>This is your space. Type, format, paste images — anything. It saves live, and your stats stay attached below.</p>`;
 
-export function PropertyDoc({ propertyId, mine, ownerName }: { propertyId: string; mine: boolean; ownerName: string }) {
+export function PropertyDoc({ propertyId, mine, ownerName, blank }: { propertyId: string; mine: boolean; ownerName: string; blank?: boolean }) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [html, setHtml] = useState<string>("");
   const [loaded, setLoaded] = useState(false);
