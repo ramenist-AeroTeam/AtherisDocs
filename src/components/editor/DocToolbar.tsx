@@ -201,7 +201,7 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
   const disabled = !sel.hasRange;
 
   return (
-    <div data-tour="format" className="sticky top-14 z-20 border-b bg-card/95 backdrop-blur-md">
+    <div data-tour="format" className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur-md">
       <div className="max-w-5xl mx-auto px-3 py-1.5 flex flex-wrap items-center gap-0.5">
         <Btn onClick={() => cmd("undo")} title="Undo"><Undo2 className="h-4 w-4" /></Btn>
         <Btn onClick={() => cmd("redo")} title="Redo"><Redo2 className="h-4 w-4" /></Btn>
