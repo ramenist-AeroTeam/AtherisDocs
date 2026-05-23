@@ -241,16 +241,15 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
           icon={<Sparkles className="h-4 w-4" />}
           onPick={(g) => {
             if (!sel.hasRange) restore();
-            wrapSelection({
-              backgroundImage: g, backgroundClip: "text",
-              ["webkitBackgroundClip" as any]: "text", color: "transparent",
-            }, "gradient-text");
+            editorRef.current?.focus();
+            applyGradientText(g);
           }} />
         <GradientPicker disabled={disabled} title="Gradient highlight"
           icon={<span className="text-xs font-bold">▮</span>}
           onPick={(g) => {
             if (!sel.hasRange) restore();
-            wrapSelection({ backgroundImage: g, padding: "0 2px", borderRadius: "3px" }, "gradient-bg");
+            editorRef.current?.focus();
+            applyGradientHighlight(g);
           }} />
         <Sep />
 
