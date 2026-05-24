@@ -27,7 +27,7 @@ export function PropertyTabBar({
   const [open, setOpen] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newKind, setNewKind] = useState<"blank" | "html" | "property">("blank");
+  const [newKind, setNewKind] = useState<"blank" | "html" | "property" | "arena">("blank");
   const [newEmoji, setNewEmoji] = useState<string>("📄");
   const [busy, setBusy] = useState(false);
   const [emojiEditFor, setEmojiEditFor] = useState<string | null>(null);
