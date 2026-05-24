@@ -3,13 +3,104 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Upload, Loader2, RefreshCw, ExternalLink } from "lucide-react";
 
+// Script injected into every HTML tab. It exposes window.atheris.{grantNoodles,
+// grantLumina, grantItem} and also auto-watches the gacha tab's `.item-value`
+// element so existing gacha pages credit rewards to the player automatically.
+const BRIDGE_SCRIPT = `<script>(function(){
+  if (window.__atheris_bridge_installed) return;
+  window.__atheris_bridge_installed = true;
+  function post(payload){ try { parent.postMessage({ source: 'atheris', ...payload }, '*'); } catch(e){} }
+  window.atheris = {
+    grantNoodles: function(n){ post({ type: 'grant', noodles: Math.max(0, Math.floor(Number(n)||0)) }); },
+    grantLumina:  function(n){ post({ type: 'grant', lumina:  Math.max(0, Math.floor(Number(n)||0)) }); },
+    grantItem: function(opts){ if(!opts||!opts.name) return; post({ type: 'item', name: String(opts.name), emoji: String(opts.emoji||'📦'), category: String(opts.category||'gacha'), qty: Math.max(1, Math.floor(Number(opts.qty)||1)) }); }
+  };
+  // ---- Auto-bridge for AERO GATCHA style pages ----
+  function parseValue(str){
+    if(!str) return null;
+    var m = String(str).replace(/,/g,'').match(/([0-9.]+)\\s*([MK]?)\\s*(Noodles|Lumina)/i);
+    if(!m) return null;
+    var n = parseFloat(m[1]);
+    var mult = m[2] === 'M' ? 1e6 : m[2] === 'K' ? 1e3 : 1;
+    var amt = Math.floor(n * mult);
+    return { kind: m[3].toLowerCase(), amount: amt };
+  }
+  function bind(){
+    var value = document.querySelector('.item-value');
+    var nameEl = document.querySelector('.item-name');
+    var catEl  = document.querySelector('.item-category');
+    if(!value) return false;
+    var lastSig = '';
+    var obs = new MutationObserver(function(){
+      var v = value.textContent || '';
+      var name = nameEl ? (nameEl.textContent || '').trim() : '';
+      var sig = name + '|' + v;
+      if (sig === lastSig || !name) return;
+      lastSig = sig;
+      var parsed = parseValue(v);
+      if (parsed){
+        if (parsed.kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
+        else if (parsed.kind === 'lumina') window.atheris.grantLumina(parsed.amount);
+        post({ type: 'gacha-log', item: name, value: v });
+      } else {
+        // Non-currency rewards (tools, passes, etc.) go to inventory
+        var emoji = '🎁';
+        var cat = catEl ? (catEl.textContent || 'gacha').split('·')[0].trim().toLowerCase() : 'gacha';
+        window.atheris.grantItem({ name: name, emoji: emoji, category: cat || 'gacha', qty: 1 });
+        post({ type: 'gacha-log', item: name, value: v });
+      }
+    });
+    obs.observe(value, { childList: true, characterData: true, subtree: true });
+    if (nameEl) obs.observe(nameEl, { childList: true, characterData: true, subtree: true });
+    return true;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(bind, 100); });
+  } else {
+    setTimeout(bind, 100);
+  }
+})();</script>`;
+
+function inject(html: string): string {
+  if (!html) return html;
+  if (html.includes("__atheris_bridge_installed")) return html;
+  if (html.toLowerCase().includes("</body>")) {
+    return html.replace(/<\/body>/i, BRIDGE_SCRIPT + "</body>");
+  }
+  return html + BRIDGE_SCRIPT;
+}
+
 export function HtmlTab({ tabId, mine }: { tabId: string; mine: boolean }) {
   const [content, setContent] = useState<string | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [flash, setFlash] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // postMessage bridge from iframe
+  useEffect(() => {
+    if (!mine) return; // only credit the tab owner
+    const onMsg = async (e: MessageEvent) => {
+      const d = e.data;
+      if (!d || d.source !== "atheris") return;
+      if (d.type === "grant") {
+        const noodles = Number(d.noodles) || 0;
+        const lumina  = Number(d.lumina)  || 0;
+        if (noodles <= 0 && lumina <= 0) return;
+        await supabase.rpc("grant_currency", { _noodles: noodles, _lumina: lumina });
+        setFlash(`+${noodles ? noodles.toLocaleString() + " 🍜" : ""}${noodles && lumina ? "  " : ""}${lumina ? lumina.toLocaleString() + " ✦" : ""}`);
+        setTimeout(() => setFlash(null), 1800);
+      } else if (d.type === "item") {
+        await supabase.rpc("grant_inventory_item", { _name: d.name, _emoji: d.emoji, _category: d.category, _qty: d.qty });
+        setFlash(`+${d.qty}× ${d.name}`);
+        setTimeout(() => setFlash(null), 1800);
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [mine]);
 
   useEffect(() => {
     let cancel = false;
@@ -39,7 +130,6 @@ export function HtmlTab({ tabId, mine }: { tabId: string; mine: boolean }) {
       const { data: u } = await supabase.auth.getUser();
       const uid = u?.user?.id;
       if (!uid) return;
-      // Also store in storage as backup / openable link
       const path = `${uid}/${tabId}-${Date.now()}.html`;
       let publicUrl: string | null = null;
       const { error: upErr } = await supabase.storage.from("tab-html").upload(path, f, { upsert: true, cacheControl: "60", contentType: "text/html" });
@@ -60,13 +150,14 @@ export function HtmlTab({ tabId, mine }: { tabId: string; mine: boolean }) {
   if (!loaded) return null;
 
   const hasHtml = !!content;
+  const renderedSrc = hasHtml ? inject(content!) : null;
 
   return (
     <div className="absolute inset-0 bg-background">
       {hasHtml ? (
         <iframe
           key={reloadKey}
-          srcDoc={content!}
+          srcDoc={renderedSrc!}
           title="Special tab"
           sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"
           className="w-full h-full border-0 block"
@@ -77,7 +168,7 @@ export function HtmlTab({ tabId, mine }: { tabId: string; mine: boolean }) {
             <div className="text-5xl mb-3">⚡</div>
             <h2 className="text-xl font-semibold mb-1">Special HTML tab</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              {mine ? "Upload an .html file and it'll run here, full-bleed, no bezel." : "The owner hasn't uploaded an HTML file yet."}
+              {mine ? "Upload an .html file and it'll run here, full-bleed, no bezel. Use window.atheris.grantNoodles(n) / grantLumina(n) / grantItem({name,emoji,category}) to credit rewards." : "The owner hasn't uploaded an HTML file yet."}
             </p>
             {mine && (
               <Button onClick={() => inputRef.current?.click()} disabled={busy}>
@@ -99,6 +190,11 @@ export function HtmlTab({ tabId, mine }: { tabId: string; mine: boolean }) {
           <Button size="sm" variant="secondary" onClick={() => inputRef.current?.click()} disabled={busy}>
             <Upload className="h-3.5 w-3.5 mr-1" /> Replace
           </Button>
+        </div>
+      )}
+      {flash && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-foreground text-background text-sm font-semibold shadow-pop animate-in fade-in slide-in-from-top-2">
+          {flash}
         </div>
       )}
       <input ref={inputRef} type="file" accept=".html,text/html" className="hidden"
