@@ -310,6 +310,10 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
             editorRef.current?.focus();
             applyGradientHighlight(g);
           }} />
+        <Btn disabled={disabled} title="Clear gradient"
+          onClick={() => { if (!sel.hasRange) restore(); editorRef.current?.focus(); clearGradients(); }}>
+          <Eraser className="h-4 w-4" />
+        </Btn>
         <Sep />
 
         <Select disabled={disabled} ariaLabel="Line height" value=""
