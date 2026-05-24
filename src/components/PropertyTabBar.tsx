@@ -54,7 +54,7 @@ export function PropertyTabBar({
   const create = async () => {
     if (!newName.trim()) return;
     setBusy(true);
-    const emoji = newEmoji || (newKind === "html" ? "⚡" : newKind === "property" ? "🏡" : "📄");
+    const emoji = newEmoji || (newKind === "html" ? "⚡" : newKind === "property" ? "🏡" : newKind === "arena" ? "⚔️" : "📄");
     const { data, error } = await supabase.from("user_tabs")
       .insert({ user_id: myUserId, name: newName.trim(), emoji, kind: newKind, is_public: true })
       .select("id,user_id,kind").maybeSingle();
