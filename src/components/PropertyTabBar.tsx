@@ -161,15 +161,15 @@ export function PropertyTabBar({
               className="w-full h-9 px-3 rounded-md border bg-background text-sm mb-3"
             />
             <div className="grid grid-cols-3 gap-2 mb-3">
-              {(["blank", "property", "html"] as const).map((k) => (
-                <button key={k} onClick={() => { setNewKind(k); setNewEmoji(k === "html" ? "⚡" : k === "property" ? "🏡" : "📄"); }}
+              {(["blank", "property", "html", "arena"] as const).map((k) => (
+                <button key={k} onClick={() => { setNewKind(k); setNewEmoji(k === "html" ? "⚡" : k === "property" ? "🏡" : k === "arena" ? "⚔️" : "📄"); }}
                   className={`p-2.5 rounded-md border text-xs font-medium flex flex-col items-center gap-1 transition ${
                     newKind === k ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted"
                   }`}>
-                  <span className="text-lg">{k === "html" ? "⚡" : k === "property" ? "🏡" : "📄"}</span>
+                  <span className="text-lg">{k === "html" ? "⚡" : k === "property" ? "🏡" : k === "arena" ? "⚔️" : "📄"}</span>
                   <span className="capitalize">{k}</span>
                   <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                    {k === "html" ? "Upload HTML" : k === "property" ? "Doc + stats" : "Just a doc"}
+                    {k === "html" ? "Upload HTML" : k === "property" ? "Doc + stats" : k === "arena" ? "Showdown game" : "Just a doc"}
                   </span>
                 </button>
               ))}
