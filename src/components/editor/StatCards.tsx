@@ -17,7 +17,7 @@ export function StatCards({ ownerId }: { ownerId: string }) {
     let mounted = true;
     const load = async () => {
       const [p, i, g] = await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", ownerId).maybeSingle(),
+        supabase.from("profiles").select("user_id,display_name,avatar_emoji,avatar_url,level,xp,noodles,lumina,font_pref,dev_build").eq("user_id", ownerId).maybeSingle(),
         supabase.from("inventory_items").select("*").eq("user_id", ownerId).order("position"),
         supabase.from("garden_plants").select("*").eq("user_id", ownerId).order("position"),
       ]);
