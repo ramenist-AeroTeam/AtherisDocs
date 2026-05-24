@@ -14,6 +14,7 @@ import { StatCards } from "@/components/editor/StatCards";
 import { PropertyTabBar } from "@/components/PropertyTabBar";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { HtmlTab } from "@/components/HtmlTab";
+import { ArenaTab } from "@/components/ArenaTab";
 import { LogOut, BookOpen, Volume2, VolumeX } from "lucide-react";
 
 type Profile = {
@@ -167,6 +168,8 @@ export default function Index() {
             <div className="flex-1 min-w-0 relative overflow-auto">
               {tabKind === "html" ? (
                 <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
+              ) : tabKind === "arena" ? (
+                <ArenaTab tabId={propertyId} myUserId={userId!} />
               ) : (
                 <main>
                   <PropertyDoc

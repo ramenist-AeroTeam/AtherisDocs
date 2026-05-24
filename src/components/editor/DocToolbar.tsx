@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bold, Italic, Underline, Strikethrough, List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Undo2, Redo2, RemoveFormatting,
-  Heading1, Heading2, Pilcrow, Highlighter, Type, Sparkles, AlignJustify,
+  Heading1, Heading2, Pilcrow, Highlighter, Type, Sparkles, AlignJustify, Eraser,
 } from "lucide-react";
 
 type SelState = {
@@ -71,59 +71,118 @@ function wrapSelection(style: Partial<CSSStyleDeclaration>, dataAttr?: string) {
   } catch { return null; }
 }
 
-function applyGradientText(g: string) {
+// Walk every text node that intersects the current selection range and wrap
+// each one in-place with a styled span. This preserves existing formatting
+// (bold/italic ancestors stay intact) and avoids the "extract+reinsert"
+// pitfalls that broke previous gradient code on multi-block selections.
+function wrapSelectedTextNodes(decorate: (span: HTMLSpanElement) => void) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
   const range = sel.getRangeAt(0);
-  const span = document.createElement("span");
-  span.setAttribute("data-style", "gradient-text");
-  span.style.setProperty("background-image", g);
-  span.style.setProperty("background-clip", "text");
-  span.style.setProperty("-webkit-background-clip", "text");
-  span.style.setProperty("-webkit-text-fill-color", "transparent");
-  span.style.setProperty("color", "transparent");
-  span.style.setProperty("background-repeat", "no-repeat");
-  try {
-    span.appendChild(range.extractContents());
-    // Strip color/background from descendants so the gradient shows through.
-    span.querySelectorAll<HTMLElement>("*").forEach((el) => {
-      el.style.removeProperty("color");
-      el.style.removeProperty("background");
-      el.style.removeProperty("background-image");
-      el.style.removeProperty("background-color");
-      el.style.setProperty("color", "inherit");
-      el.style.setProperty("background", "transparent");
-      el.style.setProperty("-webkit-text-fill-color", "inherit");
-    });
-    range.insertNode(span);
+  const root = range.commonAncestorContainer;
+  const rootEl: Node = root.nodeType === 1 ? root : (root.parentNode as Node);
+  if (!rootEl) return;
+
+  // Collect text nodes intersecting the range first (mutating during walk is unsafe)
+  const targets: Text[] = [];
+  const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => {
+      if (!n.nodeValue || n.nodeValue.length === 0) return NodeFilter.FILTER_REJECT;
+      const r = document.createRange();
+      r.selectNode(n);
+      const intersects =
+        range.compareBoundaryPoints(Range.END_TO_START, r) < 0 &&
+        range.compareBoundaryPoints(Range.START_TO_END, r) > 0;
+      return intersects ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+    },
+  });
+  let n: Node | null = walker.nextNode();
+  while (n) { targets.push(n as Text); n = walker.nextNode(); }
+
+  if (targets.length === 0) return;
+
+  const newSpans: HTMLSpanElement[] = [];
+  for (const tn of targets) {
+    // Trim to the portion actually inside the selection
+    let node = tn;
+    if (node === range.startContainer && range.startOffset > 0) {
+      node = (node as Text).splitText(range.startOffset);
+    }
+    if (node === range.endContainer) {
+      const endOffset = range.endOffset - (tn === range.startContainer ? range.startOffset : 0);
+      if (endOffset < (node as Text).length) (node as Text).splitText(endOffset);
+    }
+    const span = document.createElement("span");
+    decorate(span);
+    node.parentNode?.insertBefore(span, node);
+    span.appendChild(node);
+    newSpans.push(span);
+  }
+
+  // Reselect across the new spans so the user can chain edits
+  if (newSpans.length > 0) {
+    const r2 = document.createRange();
+    r2.setStartBefore(newSpans[0]);
+    r2.setEndAfter(newSpans[newSpans.length - 1]);
     sel.removeAllRanges();
-    const r = document.createRange();
-    r.selectNodeContents(span);
-    sel.addRange(r);
-  } catch { /* noop */ }
+    sel.addRange(r2);
+  }
+}
+
+function applyGradientText(g: string) {
+  wrapSelectedTextNodes((span) => {
+    span.setAttribute("data-style", "gradient-text");
+    span.style.backgroundImage = g;
+    span.style.backgroundRepeat = "no-repeat";
+    span.style.backgroundClip = "text";
+    (span.style as any).webkitBackgroundClip = "text";
+    (span.style as any).webkitTextFillColor = "transparent";
+    span.style.color = "transparent";
+  });
 }
 
 function applyGradientHighlight(g: string) {
-  const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
-  const range = sel.getRangeAt(0);
-  const span = document.createElement("span");
-  span.setAttribute("data-style", "gradient-bg");
-  span.style.setProperty("background-image", g);
-  span.style.setProperty("background-repeat", "no-repeat");
-  span.style.setProperty("padding", "0 3px");
-  span.style.setProperty("border-radius", "3px");
-  span.style.setProperty("box-decoration-break", "clone");
-  span.style.setProperty("-webkit-box-decoration-break", "clone");
-  try {
-    span.appendChild(range.extractContents());
-    range.insertNode(span);
-    sel.removeAllRanges();
-    const r = document.createRange();
-    r.selectNodeContents(span);
-    sel.addRange(r);
-  } catch { /* noop */ }
+  wrapSelectedTextNodes((span) => {
+    span.setAttribute("data-style", "gradient-bg");
+    span.style.backgroundImage = g;
+    span.style.backgroundRepeat = "no-repeat";
+    span.style.padding = "0 3px";
+    span.style.borderRadius = "3px";
+    (span.style as any).boxDecorationBreak = "clone";
+    (span.style as any).webkitBoxDecorationBreak = "clone";
+  });
 }
+
+// Unwrap any gradient spans intersecting the current selection.
+function clearGradients() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const root = range.commonAncestorContainer;
+  const rootEl: Element = (root.nodeType === 1 ? root : root.parentNode) as Element;
+  if (!rootEl) return;
+  const candidates: HTMLSpanElement[] = [];
+  rootEl.querySelectorAll<HTMLSpanElement>('span[data-style="gradient-text"], span[data-style="gradient-bg"]').forEach((el) => {
+    if (range.intersectsNode(el)) candidates.push(el);
+  });
+  // Also consider an ancestor span if selection is fully inside one
+  let p: Node | null = root;
+  while (p && p !== rootEl) {
+    if (p.nodeType === 1) {
+      const el = p as HTMLElement;
+      const d = el.getAttribute("data-style");
+      if (d === "gradient-text" || d === "gradient-bg") candidates.push(el as HTMLSpanElement);
+    }
+    p = p.parentNode;
+  }
+  for (const span of candidates) {
+    const parent = span.parentNode;
+    if (!parent) continue;
+    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+  }
+}
+
 function applyToBlocks(setter: (el: HTMLElement) => void) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return;
@@ -251,6 +310,10 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
             editorRef.current?.focus();
             applyGradientHighlight(g);
           }} />
+        <Btn disabled={disabled} title="Clear gradient"
+          onClick={() => { if (!sel.hasRange) restore(); editorRef.current?.focus(); clearGradients(); }}>
+          <Eraser className="h-4 w-4" />
+        </Btn>
         <Sep />
 
         <Select disabled={disabled} ariaLabel="Line height" value=""

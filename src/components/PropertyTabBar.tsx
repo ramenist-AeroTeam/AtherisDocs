@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Home as HomeIcon, Plus, Trash2, FileText, Zap, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home as HomeIcon, Plus, Trash2, FileText, Zap, X, Swords } from "lucide-react";
 import { avatarColor, avatarFg, initials } from "@/components/CornerChat";
 
 type TabRow = { id: string; user_id: string; name: string; emoji: string; kind: string };
@@ -11,6 +11,7 @@ const KIND_ICON: Record<string, React.ReactNode> = {
   property: <HomeIcon className="h-3 w-3" />,
   blank: <FileText className="h-3 w-3" />,
   html: <Zap className="h-3 w-3" />,
+  arena: <Swords className="h-3 w-3" />,
 };
 
 const EMOJI_PRESETS = ["🏡","📄","⚡","✨","📝","📓","📚","🎨","🎮","🎵","🍜","✦","💎","🌸","🌿","🌊","🔥","🌙","⭐","🪐","🧠","🧪","💡","🛠️","📦","🗂️","🧩","🎯","🚀","👾","🐱","🐶","🦊","🐼","🦄","🍀","🍕","☕","🎲","🏆"];
@@ -26,7 +27,7 @@ export function PropertyTabBar({
   const [open, setOpen] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newKind, setNewKind] = useState<"blank" | "html" | "property">("blank");
+  const [newKind, setNewKind] = useState<"blank" | "html" | "property" | "arena">("blank");
   const [newEmoji, setNewEmoji] = useState<string>("📄");
   const [busy, setBusy] = useState(false);
   const [emojiEditFor, setEmojiEditFor] = useState<string | null>(null);
@@ -53,7 +54,7 @@ export function PropertyTabBar({
   const create = async () => {
     if (!newName.trim()) return;
     setBusy(true);
-    const emoji = newEmoji || (newKind === "html" ? "⚡" : newKind === "property" ? "🏡" : "📄");
+    const emoji = newEmoji || (newKind === "html" ? "⚡" : newKind === "property" ? "🏡" : newKind === "arena" ? "⚔️" : "📄");
     const { data, error } = await supabase.from("user_tabs")
       .insert({ user_id: myUserId, name: newName.trim(), emoji, kind: newKind, is_public: true })
       .select("id,user_id,kind").maybeSingle();
@@ -160,15 +161,15 @@ export function PropertyTabBar({
               className="w-full h-9 px-3 rounded-md border bg-background text-sm mb-3"
             />
             <div className="grid grid-cols-3 gap-2 mb-3">
-              {(["blank", "property", "html"] as const).map((k) => (
-                <button key={k} onClick={() => { setNewKind(k); setNewEmoji(k === "html" ? "⚡" : k === "property" ? "🏡" : "📄"); }}
+              {(["blank", "property", "html", "arena"] as const).map((k) => (
+                <button key={k} onClick={() => { setNewKind(k); setNewEmoji(k === "html" ? "⚡" : k === "property" ? "🏡" : k === "arena" ? "⚔️" : "📄"); }}
                   className={`p-2.5 rounded-md border text-xs font-medium flex flex-col items-center gap-1 transition ${
                     newKind === k ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted"
                   }`}>
-                  <span className="text-lg">{k === "html" ? "⚡" : k === "property" ? "🏡" : "📄"}</span>
+                  <span className="text-lg">{k === "html" ? "⚡" : k === "property" ? "🏡" : k === "arena" ? "⚔️" : "📄"}</span>
                   <span className="capitalize">{k}</span>
                   <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                    {k === "html" ? "Upload HTML" : k === "property" ? "Doc + stats" : "Just a doc"}
+                    {k === "html" ? "Upload HTML" : k === "property" ? "Doc + stats" : k === "arena" ? "Showdown game" : "Just a doc"}
                   </span>
                 </button>
               ))}
