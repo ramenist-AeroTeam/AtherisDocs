@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Bold, Italic, Underline, Strikethrough, List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Undo2, Redo2, RemoveFormatting,
-  Heading1, Heading2, Pilcrow, Highlighter, Type, Sparkles, AlignJustify,
+  Heading1, Heading2, Pilcrow, Highlighter, Type, Sparkles, AlignJustify, Eraser,
 } from "lucide-react";
 
 type SelState = {
