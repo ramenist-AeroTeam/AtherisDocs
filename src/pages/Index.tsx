@@ -65,7 +65,7 @@ export default function Index() {
     if (!userId) return;
     const load = async () => {
       const [p, r, t] = await Promise.all([
-        supabase.from("profiles").select("*"),
+        supabase.from("profiles").select("user_id,display_name,avatar_emoji,avatar_url,level,xp,noodles,lumina,font_pref,dev_build,tutorial_seen"),
         supabase.from("user_roles").select("user_id, role"),
         supabase.from("user_tabs").select("id,user_id,startup_sound,kind").eq("user_id", userId).order("created_at").limit(1),
       ]);
