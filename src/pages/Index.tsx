@@ -14,6 +14,7 @@ import { StatCards } from "@/components/editor/StatCards";
 import { PropertyTabBar } from "@/components/PropertyTabBar";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { HtmlTab } from "@/components/HtmlTab";
+import { ArenaTab } from "@/components/ArenaTab";
 import { LogOut, BookOpen, Volume2, VolumeX } from "lucide-react";
 
 type Profile = {
