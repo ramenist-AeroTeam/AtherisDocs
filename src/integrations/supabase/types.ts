@@ -112,6 +112,133 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_matches: {
+        Row: {
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          id: string
+          max_players: number
+          mode: string
+          round_deadline: string | null
+          round_no: number
+          special_window_end: string | null
+          started_at: string | null
+          status: string
+          winner_team: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          ended_at?: string | null
+          id?: string
+          max_players: number
+          mode: string
+          round_deadline?: string | null
+          round_no?: number
+          special_window_end?: string | null
+          started_at?: string | null
+          status?: string
+          winner_team?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          ended_at?: string | null
+          id?: string
+          max_players?: number
+          mode?: string
+          round_deadline?: string | null
+          round_no?: number
+          special_window_end?: string | null
+          started_at?: string | null
+          status?: string
+          winner_team?: number | null
+        }
+        Relationships: []
+      }
+      arena_players: {
+        Row: {
+          current_move: string | null
+          hp: number
+          id: string
+          joined_at: string
+          last_seen: string
+          locked_move: string | null
+          match_id: string
+          ready: boolean
+          slot: number
+          team: number
+          user_id: string
+        }
+        Insert: {
+          current_move?: string | null
+          hp?: number
+          id?: string
+          joined_at?: string
+          last_seen?: string
+          locked_move?: string | null
+          match_id: string
+          ready?: boolean
+          slot: number
+          team: number
+          user_id: string
+        }
+        Update: {
+          current_move?: string | null
+          hp?: number
+          id?: string
+          joined_at?: string
+          last_seen?: string
+          locked_move?: string | null
+          match_id?: string
+          ready?: boolean
+          slot?: number
+          team?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "arena_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_rounds: {
+        Row: {
+          id: string
+          match_id: string
+          payload: Json
+          resolved_at: string
+          round_no: number
+        }
+        Insert: {
+          id?: string
+          match_id: string
+          payload?: Json
+          resolved_at?: string
+          round_no: number
+        }
+        Update: {
+          id?: string
+          match_id?: string
+          payload?: Json
+          resolved_at?: string
+          round_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_rounds_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "arena_matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           content: string
@@ -486,6 +613,19 @@ export type Database = {
       ensure_auto_property: {
         Args: { _display_name?: string; _user_id: string }
         Returns: string
+      }
+      grant_currency: {
+        Args: { _lumina?: number; _noodles?: number }
+        Returns: undefined
+      }
+      grant_inventory_item: {
+        Args: {
+          _category?: string
+          _emoji?: string
+          _name: string
+          _qty?: number
+        }
+        Returns: undefined
       }
       has_role: {
         Args: {
