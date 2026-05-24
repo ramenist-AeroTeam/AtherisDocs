@@ -168,6 +168,8 @@ export default function Index() {
             <div className="flex-1 min-w-0 relative overflow-auto">
               {tabKind === "html" ? (
                 <HtmlTab tabId={propertyId} mine={propertyOwner === userId} />
+              ) : tabKind === "arena" ? (
+                <ArenaTab tabId={propertyId} myUserId={userId!} />
               ) : (
                 <main>
                   <PropertyDoc
