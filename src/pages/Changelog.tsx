@@ -39,7 +39,7 @@ export default function Changelog() {
           </div>
           <h1 className="font-display text-4xl font-bold">What's new in Atheris</h1>
           <p className="text-muted-foreground">
-            Every visible change, newest first. Hand-written by Max & Shareef.
+            Every visible change, newest first. Written straight from all our devs.
           </p>
         </div>
 
