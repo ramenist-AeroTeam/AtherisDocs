@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Home as HomeIcon, Plus, Trash2, FileText, Zap, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Home as HomeIcon, Plus, Trash2, FileText, Zap, X, Swords } from "lucide-react";
 import { avatarColor, avatarFg, initials } from "@/components/CornerChat";
 
 type TabRow = { id: string; user_id: string; name: string; emoji: string; kind: string };
@@ -11,6 +11,7 @@ const KIND_ICON: Record<string, React.ReactNode> = {
   property: <HomeIcon className="h-3 w-3" />,
   blank: <FileText className="h-3 w-3" />,
   html: <Zap className="h-3 w-3" />,
+  arena: <Swords className="h-3 w-3" />,
 };
 
 const EMOJI_PRESETS = ["🏡","📄","⚡","✨","📝","📓","📚","🎨","🎮","🎵","🍜","✦","💎","🌸","🌿","🌊","🔥","🌙","⭐","🪐","🧠","🧪","💡","🛠️","📦","🗂️","🧩","🎯","🚀","👾","🐱","🐶","🦊","🐼","🦄","🍀","🍕","☕","🎲","🏆"];
