@@ -37,7 +37,7 @@ export function Splash({ ready, soundEnabled }: { ready: boolean; soundEnabled: 
           <span className="h-2 w-2 rounded-full bg-primary splash-dot" style={{ animationDelay: "180ms" }} />
           <span className="h-2 w-2 rounded-full bg-primary splash-dot" style={{ animationDelay: "360ms" }} />
         </div>
-        <div className="text-xs text-muted-foreground tracking-[0.2em] uppercase">loading your property</div>
+        <div className="text-xs text-muted-foreground tracking-[0.2em] uppercase">Developing...</div>
       </div>
     </div>
   );
