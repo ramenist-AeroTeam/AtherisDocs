@@ -11,67 +11,74 @@ const BRIDGE_SCRIPT = `<script>(function(){
   window.__atheris_bridge_installed = true;
   function post(payload){ try { parent.postMessage({ source: 'atheris', ...payload }, '*'); } catch(e){} }
   window.atheris = {
-    grantNoodles: function(n){ post({ type: 'grant', noodles: Math.max(0, Math.floor(Number(n)||0)) }); },
-    grantLumina:  function(n){ post({ type: 'grant', lumina:  Math.max(0, Math.floor(Number(n)||0)) }); },
-    grantItem: function(opts){ if(!opts||!opts.name) return; post({ type: 'item', name: String(opts.name), emoji: String(opts.emoji||'📦'), category: String(opts.category||'gacha'), qty: Math.max(1, Math.floor(Number(opts.qty)||1)) }); }
+    grantNoodles: function(n, meta){ post({ type: 'grant', noodles: Math.max(0, Math.floor(Number(n)||0)), ...(meta||{}) }); },
+    grantLumina:  function(n, meta){ post({ type: 'grant', lumina:  Math.max(0, Math.floor(Number(n)||0)), ...(meta||{}) }); },
+    grantItem: function(opts){ if(!opts||!opts.name) return; post({ type: 'item', name: String(opts.name), emoji: String(opts.emoji||'📦'), category: String(opts.category||'gacha'), value: String(opts.value||''), qty: Math.max(1, Math.floor(Number(opts.qty)||1)) }); }
   };
   // ---- Auto-bridge for AERO GATCHA style pages ----
   function parseValue(str){
     if(!str) return null;
-    var m = String(str).replace(/,/g,'').match(/([0-9.]+)\\s*([MK]?)\\s*(Noodles|Lumina)/i);
+    var m = String(str).replace(/,/g,'').match(/([0-9]+(?:\\.[0-9]+)?)\\s*([KMB]?)\\s*(Noodles?|Lumina)/i);
     if(!m) return null;
     var n = parseFloat(m[1]);
-    var mult = m[2] === 'M' ? 1e6 : m[2] === 'K' ? 1e3 : 1;
-    var amt = Math.floor(n * mult);
-    return { kind: m[3].toLowerCase(), amount: amt };
+    var suffix = String(m[2]||'').toUpperCase();
+    var mult = suffix === 'B' ? 1e9 : suffix === 'M' ? 1e6 : suffix === 'K' ? 1e3 : 1;
+    return { kind: /lumina/i.test(m[3]) ? 'lumina' : 'noodles', amount: Math.floor(n * mult) };
   }
   function currencyKind(name, cat, parsed){
-    var s = ((name||'') + ' ' + (cat||'')).toLowerCase().trim();
-    // Category-based: "currency", "noodles", "lumina", "bundle", "bundles"
-    if (/\b(currency|noodles?|lumina|bundles?)\b/.test((cat||'').toLowerCase())) {
-      if (/lumina/.test(s)) return 'lumina';
-      return 'noodles';
-    }
-    // Name-based: contains noodle/lumina and a quantity word, OR name IS just the currency word
-    if (/^(noodles?|lumina)$/.test(s)) return /lumina/.test(s) ? 'lumina' : 'noodles';
-    if (/\b(bundle|pack|stack|sack|pouch|chest|bag|pile|crate|hoard|sack|jar|pile|heap)\b/.test((name||'').toLowerCase()) && parsed) {
-      return parsed.kind;
-    }
+    if(!parsed) return null;
+    var n = String(name||'').toLowerCase();
+    var c = String(cat||'').toLowerCase();
+    var all = n + ' ' + c;
+    var currencyCategory = /\\b(currency|resources?|bundles?|noodles?|lumina)\\b/.test(c);
+    var currencyName = /\\b(noodles?|lumina)\\b/.test(n) && /\\b(bundle|pack|stack|sack|pouch|chest|bag|pile|crate|hoard|jar|heap)\\b/.test(n);
+    var exactCurrency = /^(noodles?|lumina)$/.test(n.trim());
+    if (currencyCategory || currencyName || exactCurrency) return /lumina/.test(all) ? 'lumina' : parsed.kind;
     return null;
   }
   function bind(){
     var value = document.querySelector('.item-value');
     var nameEl = document.querySelector('.item-name');
     var catEl  = document.querySelector('.item-category');
-    if(!value) return false;
+    if(!value || !nameEl) return false;
     var lastSig = '';
-    var obs = new MutationObserver(function(){
-      var v = value.textContent || '';
-      var name = nameEl ? (nameEl.textContent || '').trim() : '';
-      var sig = name + '|' + v;
-      if (sig === lastSig || !name) return;
-      lastSig = sig;
-      var parsed = parseValue(v);
+    var lastAt = 0;
+    var timer = null;
+    var readReward = function(){
+      var v = (value.textContent || '').trim();
+      var name = (nameEl.textContent || '').trim();
       var cat = catEl ? (catEl.textContent || 'gacha').split('·')[0].trim().toLowerCase() : 'gacha';
+      if(!name || name === '???' || !v) return;
+      var sig = name + '|' + v + '|' + cat;
+      var now = Date.now();
+      if (sig === lastSig && now - lastAt < 750) return;
+      lastSig = sig;
+      lastAt = now;
+      var parsed = parseValue(v);
       var kind = currencyKind(name, cat, parsed);
       if (kind && parsed) {
-        if (kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
-        else if (kind === 'lumina') window.atheris.grantLumina(parsed.amount);
-        post({ type: 'gacha-log', item: name, value: v, currency: kind, amount: parsed.amount });
+        var meta = { item: name, value: v, category: cat, rewardSig: sig };
+        if (kind === 'noodles') window.atheris.grantNoodles(parsed.amount, meta);
+        else window.atheris.grantLumina(parsed.amount, meta);
+        post({ type: 'gacha-log', item: name, value: v, category: cat, currency: kind, amount: parsed.amount, rewardSig: sig, granted: true });
       } else {
-        window.atheris.grantItem({ name: name, emoji: '🎁', category: cat || 'gacha', qty: 1 });
-        post({ type: 'gacha-log', item: name, value: v });
+        window.atheris.grantItem({ name: name, emoji: '🎁', category: cat || 'gacha', value: v, qty: 1 });
+        post({ type: 'gacha-log', item: name, value: v, category: cat, rewardSig: sig, granted: false });
       }
-    });
+    };
+    var obs = new MutationObserver(function(){ clearTimeout(timer); timer = setTimeout(readReward, 40); });
     obs.observe(value, { childList: true, characterData: true, subtree: true });
-    if (nameEl) obs.observe(nameEl, { childList: true, characterData: true, subtree: true });
+    obs.observe(nameEl, { childList: true, characterData: true, subtree: true });
+    if (catEl) obs.observe(catEl, { childList: true, characterData: true, subtree: true });
     return true;
   }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(bind, 100); });
-  } else {
-    setTimeout(bind, 100);
+  function start(){
+    var tries = 0;
+    var tick = function(){ if (bind() || ++tries > 40) return; setTimeout(tick, 250); };
+    tick();
   }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })();</script>`;
 
 function inject(html: string): string {
