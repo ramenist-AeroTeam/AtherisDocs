@@ -53,12 +53,11 @@ const BRIDGE_SCRIPT = `<script>(function(){
       lastSig = sig;
       var parsed = parseValue(v);
       var cat = catEl ? (catEl.textContent || 'gacha').split('·')[0].trim().toLowerCase() : 'gacha';
-      // Only credit currency for explicit Noodle/Lumina bundles. Every other
-      // reward — even if its display value is shown in noodles — goes to inventory.
-      if (parsed && isCurrencyBundle(name, cat)) {
-        if (parsed.kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
-        else if (parsed.kind === 'lumina') window.atheris.grantLumina(parsed.amount);
-        post({ type: 'gacha-log', item: name, value: v });
+      var kind = currencyKind(name, cat, parsed);
+      if (kind && parsed) {
+        if (kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
+        else if (kind === 'lumina') window.atheris.grantLumina(parsed.amount);
+        post({ type: 'gacha-log', item: name, value: v, currency: kind, amount: parsed.amount });
       } else {
         window.atheris.grantItem({ name: name, emoji: '🎁', category: cat || 'gacha', qty: 1 });
         post({ type: 'gacha-log', item: name, value: v });
