@@ -98,22 +98,30 @@ export function HtmlTab({ tabId, mine }: { tabId: string; mine: boolean }) {
   const [reloadKey, setReloadKey] = useState(0);
   const [flash, setFlash] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const grantedRef = useRef<Map<string, number>>(new Map());
 
-  // postMessage bridge from iframe
+  // postMessage bridge from iframe: rewards credit the signed-in viewer, not only the tab owner.
   useEffect(() => {
-    if (!mine) return; // only credit the tab owner
     const onMsg = async (e: MessageEvent) => {
       const d = e.data;
       if (!d || d.source !== "atheris") return;
+      if ((d.type === "grant" || d.type === "item") && d.rewardSig) {
+        const now = Date.now();
+        const last = grantedRef.current.get(d.rewardSig) || 0;
+        if (now - last < 2000) return;
+        grantedRef.current.set(d.rewardSig, now);
+      }
       if (d.type === "grant") {
         const noodles = Number(d.noodles) || 0;
         const lumina  = Number(d.lumina)  || 0;
         if (noodles <= 0 && lumina <= 0) return;
-        await supabase.rpc("grant_currency", { _noodles: noodles, _lumina: lumina });
+        const { error } = await supabase.rpc("grant_currency", { _noodles: noodles, _lumina: lumina });
+        if (error) return console.warn("Atheris reward sync failed", error.message);
         setFlash(`+${noodles ? noodles.toLocaleString() + " 🍜" : ""}${noodles && lumina ? "  " : ""}${lumina ? lumina.toLocaleString() + " ✦" : ""}`);
         setTimeout(() => setFlash(null), 1800);
       } else if (d.type === "item") {
-        await supabase.rpc("grant_inventory_item", { _name: d.name, _emoji: d.emoji, _category: d.category, _qty: d.qty });
+        const { error } = await supabase.rpc("grant_inventory_item", { _name: d.name, _emoji: d.emoji, _category: d.category, _qty: d.qty });
+        if (error) return console.warn("Atheris item sync failed", error.message);
         setFlash(`+${d.qty}× ${d.name}`);
         setTimeout(() => setFlash(null), 1800);
       }
