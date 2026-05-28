@@ -7,14 +7,14 @@ type Step = { selector?: string; title: string; body: string; placement?: "botto
 
 const STEPS: Step[] = [
   {
-    title: "Welcome to Atheris ✨",
+    title: "Welcome to Atheris.",
     body: "Your Property is a live document — like Google Docs, but it also holds your stats, currency, inventory and garden. Let's take a 30-second tour.",
   },
   { selector: "[data-tour='format']", title: "Format like Docs", body: "Select any text in your property and the toolbar lights up. Bold, italic, color, fonts, headings, lists — all the usual stuff.", placement: "bottom" },
   { selector: "[data-tour='currency']", title: "Currencies", body: "🍜 Noodles for purchases, ✦ Lumina for premium upgrades. Earn them by playing.", placement: "bottom" },
   { selector: "[data-tour='aero']", title: "Played Aero before?", body: "Click here to request your old pets and roles back. An owner reviews each request.", placement: "bottom" },
   { selector: "[data-tour='stats']", title: "Your stats, attached", body: "These cards live on every property and update in realtime as you play. You can't accidentally delete them.", placement: "top" },
-  { title: "You're all set 🎉", body: "Everything saves live and syncs to other tabs instantly. No refresh ever needed." },
+  { title: "You're all set", body: "Have fun!"},
 ];
 
 function useRect(selector?: string) {
