@@ -25,9 +25,19 @@ const BRIDGE_SCRIPT = `<script>(function(){
     var amt = Math.floor(n * mult);
     return { kind: m[3].toLowerCase(), amount: amt };
   }
-  function isCurrencyBundle(name, cat){
-    var s = ((name||'') + ' ' + (cat||'')).toLowerCase();
-    return /(bundle|pack|stack|sack|pouch|chest|bag|pile|crate|hoard) of (noodles|lumina)|noodle (bundle|pack|stack)|lumina (bundle|pack|stack)|^(noodles|lumina)$/.test(s);
+  function currencyKind(name, cat, parsed){
+    var s = ((name||'') + ' ' + (cat||'')).toLowerCase().trim();
+    // Category-based: "currency", "noodles", "lumina", "bundle", "bundles"
+    if (/\b(currency|noodles?|lumina|bundles?)\b/.test((cat||'').toLowerCase())) {
+      if (/lumina/.test(s)) return 'lumina';
+      return 'noodles';
+    }
+    // Name-based: contains noodle/lumina and a quantity word, OR name IS just the currency word
+    if (/^(noodles?|lumina)$/.test(s)) return /lumina/.test(s) ? 'lumina' : 'noodles';
+    if (/\b(bundle|pack|stack|sack|pouch|chest|bag|pile|crate|hoard|sack|jar|pile|heap)\b/.test((name||'').toLowerCase()) && parsed) {
+      return parsed.kind;
+    }
+    return null;
   }
   function bind(){
     var value = document.querySelector('.item-value');
@@ -43,12 +53,11 @@ const BRIDGE_SCRIPT = `<script>(function(){
       lastSig = sig;
       var parsed = parseValue(v);
       var cat = catEl ? (catEl.textContent || 'gacha').split('·')[0].trim().toLowerCase() : 'gacha';
-      // Only credit currency for explicit Noodle/Lumina bundles. Every other
-      // reward — even if its display value is shown in noodles — goes to inventory.
-      if (parsed && isCurrencyBundle(name, cat)) {
-        if (parsed.kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
-        else if (parsed.kind === 'lumina') window.atheris.grantLumina(parsed.amount);
-        post({ type: 'gacha-log', item: name, value: v });
+      var kind = currencyKind(name, cat, parsed);
+      if (kind && parsed) {
+        if (kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
+        else if (kind === 'lumina') window.atheris.grantLumina(parsed.amount);
+        post({ type: 'gacha-log', item: name, value: v, currency: kind, amount: parsed.amount });
       } else {
         window.atheris.grantItem({ name: name, emoji: '🎁', category: cat || 'gacha', qty: 1 });
         post({ type: 'gacha-log', item: name, value: v });
