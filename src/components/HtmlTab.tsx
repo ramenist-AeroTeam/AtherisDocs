@@ -25,6 +25,10 @@ const BRIDGE_SCRIPT = `<script>(function(){
     var amt = Math.floor(n * mult);
     return { kind: m[3].toLowerCase(), amount: amt };
   }
+  function isCurrencyBundle(name, cat){
+    var s = ((name||'') + ' ' + (cat||'')).toLowerCase();
+    return /(bundle|pack|stack|sack|pouch|chest|bag|pile|crate|hoard) of (noodles|lumina)|noodle (bundle|pack|stack)|lumina (bundle|pack|stack)|^(noodles|lumina)$/.test(s);
+  }
   function bind(){
     var value = document.querySelector('.item-value');
     var nameEl = document.querySelector('.item-name');
@@ -38,15 +42,15 @@ const BRIDGE_SCRIPT = `<script>(function(){
       if (sig === lastSig || !name) return;
       lastSig = sig;
       var parsed = parseValue(v);
-      if (parsed){
+      var cat = catEl ? (catEl.textContent || 'gacha').split('·')[0].trim().toLowerCase() : 'gacha';
+      // Only credit currency for explicit Noodle/Lumina bundles. Every other
+      // reward — even if its display value is shown in noodles — goes to inventory.
+      if (parsed && isCurrencyBundle(name, cat)) {
         if (parsed.kind === 'noodles') window.atheris.grantNoodles(parsed.amount);
         else if (parsed.kind === 'lumina') window.atheris.grantLumina(parsed.amount);
         post({ type: 'gacha-log', item: name, value: v });
       } else {
-        // Non-currency rewards (tools, passes, etc.) go to inventory
-        var emoji = '🎁';
-        var cat = catEl ? (catEl.textContent || 'gacha').split('·')[0].trim().toLowerCase() : 'gacha';
-        window.atheris.grantItem({ name: name, emoji: emoji, category: cat || 'gacha', qty: 1 });
+        window.atheris.grantItem({ name: name, emoji: '🎁', category: cat || 'gacha', qty: 1 });
         post({ type: 'gacha-log', item: name, value: v });
       }
     });
