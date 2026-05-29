@@ -1,146 +1,136 @@
-<!doctype html>
-<html lang="en">
-  <head>
-<style>
-  #lovable-badge-cta > * {
-    display: none !important;
-  }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atheris (The supa broken beta)</title>
 
-  #lovable-badge-cta::after {
-    content: "🍜 rameni";
-    font-weight: 700;
-    color: white;
-    font-size: 13px;
-    animation: ramenPulse 1.4s infinite ease-in-out;
-  }
+  <meta name="description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
+  <meta name="author" content="Lovable" />
 
-  @keyframes ramenPulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.12); opacity: 0.85; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  #rameni-menu {
-    position: fixed;
-    bottom: 48px;
-    right: 12px;
-    background: #1b1b1b;
-    color: white;
-    padding: 12px;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    font-size: 13px;
-    display: none;
-    z-index: 1000001;
-    width: 210px;
-    animation: menuSlide 0.25s ease-out;
-  }
-
-  @keyframes menuSlide {
-    from { transform: translateY(10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  #rameni-menu .section-title {
-    font-weight: 700;
-    margin-top: 10px;
-    margin-bottom: 6px;
-    opacity: 0.9;
-  }
-
-  #rameni-menu a {
-    display: block;
-    padding: 6px 0;
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-  }
-
-  #rameni-menu a:hover {
-    color: #ffdd66;
-  }
-
-  #rameni-menu .disclaimer {
-    font-size: 11px;
-    opacity: 0.7;
-    margin-top: 4px;
-  }
-</style>
-<script>
- <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const badge = document.getElementById("lovable-badge-cta");
-
-    if (badge) {
-      badge.href = "javascript:void(0)";
-      badge.removeAttribute("target");
-
-      const menu = document.createElement("div");
-      menu.id = "rameni-menu";
-      menu.innerHTML = `
-        <div class="section-title">🍜 RAMENI MENU</div>
-
-        <a href="javascript:void(0)">🏠 Home</a>
-
-        <div class="section-title">📦 Projects</div>
-        <a href="https://atherisdocs.lovable.app" target="_blank">Atheris</a>
-        <a href="https://tiny.cc/rameni" target="_blank">RAMENI v1</a>
-        <a href="https://tiny.cc/aero2" target="_blank">Aero v2</a>
-        <a href="https://tiny.cc/aeroIV" target="_blank">Aero IV</a>
-
-        <div class="section-title">🎮 Games</div>
-        <a href="https://paradise-gardensonline.lovable.app" target="_blank">Paradise Gardens</a>
-        <a href="https://celestialgardens.lovable.app" target="_blank">Celestial Gardens</a>
-
-        <div class="section-title">👥 Team</div>
-        <a href="javascript:void(0)">Shareef</a>
-        <a href="javascript:void(0)">Max</a>
-        <a href="javascript:void(0)">Darcy</a>
-        <a href="javascript:void(0)">Andrea</a>
-        <a href="javascript:void(0)">Sophia</a>
-
-        <div class="disclaimer">(last names hidden for privacy)</div>
-      `;
-      document.body.appendChild(menu);
-
-      badge.addEventListener("click", () => {
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
-      });
-
-      document.addEventListener("click", (e) => {
-        if (!badge.contains(e.target) && !menu.contains(e.target)) {
-          menu.style.display = "none";
-        }
-      });
-    }
-  });
-</script>
-
-</script>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Atheris (The supa broken beta)</title>
-    <meta name="description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
-    <meta name="author" content="Lovable" />
-
-    <!-- TODO: Update og:title to match your application name -->
-    
-    
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18d7f289-6736-468f-a226-9d9b692bdf9a/id-preview-8f009a6a--5e56d63b-ac9c-4298-8bb5-4543db16aa79.lovable.app-1777687919491.png">
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18d7f289-6736-468f-a226-9d9b692bdf9a/id-preview-8f009a6a--5e56d63b-ac9c-4298-8bb5-4543db16aa79.lovable.app-1777687919491.png">
-    <meta property="og:title" content="Atheris (The supa broken beta)">
-  <meta name="twitter:title" content="Atheris (The supa broken beta)">
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Atheris (The supa broken beta)">
   <meta property="og:description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
-  <meta name="twitter:description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
-</head>
+  <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18d7f289-6736-468f-a226-9d9b692bdf9a/id-preview-8f009a6a--5e56d63b-ac9c-4298-8bb5-4543db16aa79.lovable.app-1777687919491.png">
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Lovable" />
+  <meta name="twitter:title" content="Atheris (The supa broken beta)">
+  <meta name="twitter:description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
+  <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18d7f289-6736-468f-a226-9d9b692bdf9a/id-preview-8f009a6a--5e56d63b-ac9c-4298-8bb5-4543db16aa79.lovable.app-1777687919491.png">
+
+  <!-- ⭐ RAMENI BADGE CSS -->
+  <style>
+    #lovable-badge-cta > * {
+      display: none !important;
+    }
+
+    #lovable-badge-cta::after {
+      content: "🍜 rameni";
+      font-weight: 700;
+      color: white;
+      font-size: 13px;
+      animation: ramenPulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes ramenPulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.12); opacity: 0.85; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #rameni-menu {
+      position: fixed;
+      bottom: 48px;
+      right: 12px;
+      background: #1b1b1b;
+      color: white;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      font-size: 13px;
+      display: none;
+      z-index: 1000001;
+      width: 210px;
+      animation: menuSlide 0.25s ease-out;
+    }
+
+    @keyframes menuSlide {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    #rameni-menu .section-title {
+      font-weight: 700;
+      margin-top: 10px;
+      margin-bottom: 6px;
+      opacity: 0.9;
+    }
+
+    #rameni-menu a {
+      display: block;
+      padding: 6px 0;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    #rameni-menu a:hover {
+      color: #ffdd66;
+    }
+
+    #rameni-menu .disclaimer {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+  </style>
+
+  <!-- ⭐ RAMENI BADGE JS -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const badge = document.getElementById("lovable-badge-cta");
+
+      if (badge) {
+        badge.href = "javascript:void(0)";
+        badge.removeAttribute("target");
+
+        const menu = document.createElement("div");
+        menu.id = "rameni-menu";
+        menu.innerHTML = `
+          <div class="section-title">🍜 RAMENI MENU</div>
+
+          <a href="javascript:void(0)">🏠 Home</a>
+
+          <div class="section-title">📦 Projects</div>
+          <a href="https://atherisdocs.lovable.app" target="_blank">Atheris</a>
+          <a href="https://tiny.cc/rameni" target="_blank">RAMENI v1</a>
+          <a href="https://tiny.cc/aero2" target="_blank">Aero v2</a>
+          <a href="https://tiny.cc/aeroIV" target="_blank">Aero IV</a>
+
+          <div class="section-title">🎮 Games</div>
+          <a href="https://paradise-gardensonline.lovable.app" target="_blank">Paradise Gardens</a>
+          <a href="https://celestialgardens.lovable.app" target="_blank">Celestial Gardens</a>
+
+          <div class="section-title">👥 Team</div>
+          <a href="javascript:void(0)">Shareef</a>
+          <a href="javascript:void(0)">Max</a>
+          <a href="javascript:void(0)">Darcy</a>
+          <a href="javascript:void(0)">Andrea</a>
+          <a href="javascript:void(0)">Sophia</a>
+
+          <div class="disclaimer">(last names hidden for privacy)</div>
+        `;
+        document.body.appendChild(menu);
+
+        badge.addEventListener("click", () => {
+          menu.style.display = menu.style.display === "block" ? "none" : "block";
+        });
+
+        document.addEventListener("click", (e) => {
+          if (!badge.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = "none";
+          }
+        });
+      }
+    });
+  </script>
+</head>
