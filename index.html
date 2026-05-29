@@ -1,11 +1,30 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <style>
-  #lovable-badge {
-    display: none !important;
+  <style>
+  /* Change the link target */
+  #lovable-badge-cta {
+    pointer-events: none !important; /* disable original link */
+  }
+
+  /* Add your own text */
+  #lovable-badge-cta::after {
+    content: "🍜 rameni";
+    font-size: 12px;
+    margin-left: 6px;
   }
 </style>
+
+<script>
+  // Replace the link with javascript:void(0)
+  document.addEventListener("DOMContentLoaded", () => {
+    const badge = document.getElementById("lovable-badge-cta");
+    if (badge) {
+      badge.href = "javascript:void(0)";
+      badge.removeAttribute("target");
+    }
+  });
+</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- TODO: Set the document title to the name of your application -->
