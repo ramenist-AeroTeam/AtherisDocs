@@ -1,32 +1,33 @@
-// Short generated chime via WebAudio. No asset needed.
-export async function playStartupChime() {
-  try {
-    const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    if (ctx.state === "suspended") {
-      try { await ctx.resume(); } catch { /* autoplay blocked */ }
-    }
-    const notes = [523.25, 659.25, 783.99]; // C5 E5 G5
-    const now = ctx.currentTime;
-    const master = ctx.createGain();
-    master.gain.value = 0.18;
-    master.connect(ctx.destination);
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const t = now + i * 0.12;
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(1, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
-      osc.connect(g).connect(master);
-      osc.start(t);
-      osc.stop(t + 0.5);
-    });
-    setTimeout(() => ctx.close().catch(() => {}), 1500);
-  } catch {
-    // silent
+export function playStartupChime() {
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+  function note(freq: number, startTime: number, duration: number, volume: number) {
+    const osc = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc2.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+    osc2.frequency.setValueAtTime(freq * 2.01, ctx.currentTime + startTime);
+
+    osc.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+
+    gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+    gain.gain.linearRampToValueAtTime(volume, ctx.currentTime + startTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(volume * 0.6, ctx.currentTime + startTime + duration * 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+
+    osc.start(ctx.currentTime + startTime);
+    osc2.start(ctx.currentTime + startTime);
+    osc.stop(ctx.currentTime + startTime + duration + 0.05);
+    osc2.stop(ctx.currentTime + startTime + duration + 0.05);
   }
+
+  note(523,  0.00, 0.18, 0.22);  // C5
+  note(659,  0.16, 0.18, 0.22);  // E5
+  note(784,  0.32, 0.18, 0.22);  // G5
+  note(1047, 0.48, 0.55, 0.20);  // C6
 }
