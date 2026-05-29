@@ -23,7 +23,7 @@ export function Splash({ ready, soundEnabled }: { ready: boolean; soundEnabled: 
   useEffect(() => {
     if (!ready) return;
     const elapsed = Date.now() - mountedAt;
-    const wait = Math.max(0, 700 - elapsed);
+   const wait = Math.max(0, 3500 - elapsed);
     const t = setTimeout(() => setShow(false), wait);
     return () => clearTimeout(t);
   }, [ready, mountedAt]);
