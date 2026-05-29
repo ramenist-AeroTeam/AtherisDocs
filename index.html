@@ -2,26 +2,81 @@
 <html lang="en">
   <head>
   <style>
-  /* Change the link target */
-  #lovable-badge-cta {
-    pointer-events: none !important; /* disable original link */
+  /* Remove original Lovable text */
+  #lovable-badge-cta > * {
+    display: none !important;
   }
 
-  /* Add your own text */
+  /* Add custom RAMENI text */
   #lovable-badge-cta::after {
     content: "🍜 rameni";
-    font-size: 12px;
-    margin-left: 6px;
+    font-weight: 700;
+    color: white;
+    font-size: 13px;
+    animation: ramenPulse 1.4s infinite ease-in-out;
+  }
+
+  /* Pulse animation */
+  @keyframes ramenPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.12); opacity: 0.85; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* RAMENI MENU PANEL */
+  #rameni-menu {
+    position: fixed;
+    bottom: 48px;
+    right: 12px;
+    background: #1b1b1b;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    font-size: 13px;
+    display: none;
+    z-index: 1000001;
+    width: 160px;
+  }
+
+  #rameni-menu a {
+    display: block;
+    padding: 6px 0;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  #rameni-menu a:hover {
+    color: #ffdd66;
   }
 </style>
-
 <script>
-  // Replace the link with javascript:void(0)
   document.addEventListener("DOMContentLoaded", () => {
     const badge = document.getElementById("lovable-badge-cta");
+
     if (badge) {
+      // Disable original link
       badge.href = "javascript:void(0)";
       badge.removeAttribute("target");
+
+      // Create RAMENI menu
+      const menu = document.createElement("div");
+      menu.id = "rameni-menu";
+      menu.innerHTML = `
+        <strong>🍜 RAMENI MENU</strong><br><br>
+        <a href="#">🏠 Home</a>
+        <a href="#">📦 Projects</a>
+        <a href="#">🎮 Games</a>
+        <a href="#">👥 Team</a>
+        <a href="#">⚙ Settings</a>
+      `;
+      document.body.appendChild(menu);
+
+      // Toggle menu on click
+      badge.addEventListener("click", () => {
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
+      });
     }
   });
 </script>
