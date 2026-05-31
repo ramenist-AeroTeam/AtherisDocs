@@ -1,38 +1,93 @@
 <!doctype html>
 <html lang="en">
   <head>
+  <style>
+  /* Hide original Lovable badge text */
+  #lovable-badge-cta > * {
+    display: none !important;
+  }
+
+  /* Custom RAMENI label */
+  #lovable-badge-cta::after {
+    content: "🍜 rameni";
+    font-weight: 700;
+    color: white;
+    font-size: 13px;
+  }
+
+  /* Steam particles */
+  .rameni-steam {
+    position: fixed;
+    bottom: 52px;
+    right: 18px;
+    pointer-events: none;
+    z-index: 1000001;
+    display: flex;
+    gap: 5px;
+    align-items: flex-end;
+  }
+
+  .rameni-steam span {
+    display: block;
+    width: 4px;
+    border-radius: 4px;
+    background: rgba(255, 220, 100, 0.7);
+    animation: steamRise 1.6s ease-in infinite;
+    transform-origin: bottom center;
+  }
+
+  .rameni-steam span:nth-child(1) { height: 10px; animation-delay: 0s;   animation-duration: 1.4s; }
+  .rameni-steam span:nth-child(2) { height: 14px; animation-delay: 0.3s; animation-duration: 1.7s; }
+  .rameni-steam span:nth-child(3) { height: 8px;  animation-delay: 0.6s; animation-duration: 1.5s; }
+
+  @keyframes steamRise {
+    0%   { transform: translateY(0)    scaleX(1);   opacity: 0.8; }
+    50%  { transform: translateY(-10px) scaleX(1.4); opacity: 0.5; }
+    100% { transform: translateY(-20px) scaleX(0.6); opacity: 0; }
+  }
+
+  /* Badge glow pulse */
+  @keyframes ramenGlow {
+    0%, 100% { box-shadow: 0 0 6px 1px rgba(255, 200, 60, 0.3); }
+    50%       { box-shadow: 0 0 14px 4px rgba(255, 200, 60, 0.7); }
+  }
+
+  #lovable-badge-cta {
+    animation: ramenGlow 2s ease-in-out infinite !important;
+    pointer-events: none !important;
+  }
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const badge = document.getElementById("lovable-badge-cta");
+      if (badge) {
+        badge.href = "javascript:void(0)";
+        badge.removeAttribute("target");
+
+        const steam = document.createElement("div");
+        steam.className = "rameni-steam";
+        steam.innerHTML = "<span></span><span></span><span></span>";
+        document.body.appendChild(steam);
+      }
+    });
+  </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Atheris (The supa broken beta)</title>
-
-    <style>
-      #lovable-badge-cta > * {
-        display: none !important;
-      }
-
-      #lovable-badge-cta::after {
-        content: "🍜 rameni";
-        font-weight: 700;
-        color: white;
-        font-size: 13px;
-      }
-
-      #lovable-badge-cta {
-        position: fixed;
-        bottom: 12px;
-        right: 12px;
-        background: #1b1b1b;
-        padding: 8px 12px;
-        border-radius: 8px;
-        z-index: 1000001;
-      }
-    </style>
+    <meta name="description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
+    <meta name="author" content="Lovable" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18d7f289-6736-468f-a226-9d9b692bdf9a/id-preview-8f009a6a--5e56d63b-ac9c-4298-8bb5-4543db16aa79.lovable.app-1777687919491.png">
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18d7f289-6736-468f-a226-9d9b692bdf9a/id-preview-8f009a6a--5e56d63b-ac9c-4298-8bb5-4543db16aa79.lovable.app-1777687919491.png">
+    <meta property="og:title" content="Atheris (The supa broken beta)">
+    <meta name="twitter:title" content="Atheris (The supa broken beta)">
+    <meta property="og:description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
+    <meta name="twitter:description" content="Hi! Welcome to Atheris. Formerly known as Aero, we are rebuilding from scratch. We are still in beta, hold tight! We will have our actual release soon.">
   </head>
-
   <body>
     <div id="root"></div>
-
-    <!-- Badge placed OUTSIDE React root -->
-    <a id="lovable-badge-cta" href="#"></a>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
