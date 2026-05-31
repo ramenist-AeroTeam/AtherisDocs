@@ -1,20 +1,29 @@
 <!doctype html>
 <html lang="en">
   <head>
-  <style>
-  /* Remove original Lovable text */
-  #lovable-badge-cta > * {
-    display: none !important;
-  }
+    <style>
+      #lovable-badge-cta > * {
+        display: none !important;
+      }
 
-  /* Add simple RAMENI text (no animation) */
-  #lovable-badge-cta::after {
-    content: "🍜 rameni";
-    font-weight: 700;
-    color: white;
-    font-size: 13px;
-  }
-</style>
+      #lovable-badge-cta::after {
+        content: "🍜 rameni";
+        font-weight: 700;
+        color: white;
+        font-size: 13px;
+      }
+
+      /* Ensure the badge container exists and is visible */
+      #lovable-badge-cta {
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        background: #1b1b1b;
+        padding: 8px 12px;
+        border-radius: 8px;
+        z-index: 1000001;
+      }
+    </style>
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -28,4 +37,8 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Lovable" />
   </head>
+
+  <body>
+    <a id="lovable-badge-cta" href="#"> </a>
+  </body>
 </html>
