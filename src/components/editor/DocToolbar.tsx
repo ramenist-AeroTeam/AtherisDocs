@@ -71,10 +71,6 @@ function wrapSelection(style: Partial<CSSStyleDeclaration>, dataAttr?: string) {
   } catch { return null; }
 }
 
-// Walk every text node that intersects the current selection range and wrap
-// each one in-place with a styled span. This preserves existing formatting
-// (bold/italic ancestors stay intact) and avoids the "extract+reinsert"
-// pitfalls that broke previous gradient code on multi-block selections.
 function wrapSelectedTextNodes(decorate: (span: HTMLSpanElement) => void) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
@@ -82,8 +78,6 @@ function wrapSelectedTextNodes(decorate: (span: HTMLSpanElement) => void) {
   const root = range.commonAncestorContainer;
   const rootEl: Node = root.nodeType === 1 ? root : (root.parentNode as Node);
   if (!rootEl) return;
-
-  // Collect text nodes intersecting the range first (mutating during walk is unsafe)
   const targets: Text[] = [];
   const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, {
     acceptNode: (n) => {
@@ -98,12 +92,9 @@ function wrapSelectedTextNodes(decorate: (span: HTMLSpanElement) => void) {
   });
   let n: Node | null = walker.nextNode();
   while (n) { targets.push(n as Text); n = walker.nextNode(); }
-
   if (targets.length === 0) return;
-
   const newSpans: HTMLSpanElement[] = [];
   for (const tn of targets) {
-    // Trim to the portion actually inside the selection
     let node = tn;
     if (node === range.startContainer && range.startOffset > 0) {
       node = (node as Text).splitText(range.startOffset);
@@ -118,8 +109,6 @@ function wrapSelectedTextNodes(decorate: (span: HTMLSpanElement) => void) {
     span.appendChild(node);
     newSpans.push(span);
   }
-
-  // Reselect across the new spans so the user can chain edits
   if (newSpans.length > 0) {
     const r2 = document.createRange();
     r2.setStartBefore(newSpans[0]);
@@ -153,7 +142,6 @@ function applyGradientHighlight(g: string) {
   });
 }
 
-// Unwrap any gradient spans intersecting the current selection.
 function clearGradients() {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0) return;
@@ -165,7 +153,6 @@ function clearGradients() {
   rootEl.querySelectorAll<HTMLSpanElement>('span[data-style="gradient-text"], span[data-style="gradient-bg"]').forEach((el) => {
     if (range.intersectsNode(el)) candidates.push(el);
   });
-  // Also consider an ancestor span if selection is fully inside one
   let p: Node | null = root;
   while (p && p !== rootEl) {
     if (p.nodeType === 1) {
@@ -204,7 +191,6 @@ function applyToBlocks(setter: (el: HTMLElement) => void) {
   };
   walk(range.startContainer);
   walk(range.endContainer);
-  // also intermediate
   const it = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_ELEMENT);
   let cur = it.currentNode;
   while (cur) {
@@ -214,6 +200,34 @@ function applyToBlocks(setter: (el: HTMLElement) => void) {
   }
   blocks.forEach(setter);
 }
+
+// ─── Toolbar styles ────────────────────────────────────────────────────────
+
+const toolbarWrapStyle: React.CSSProperties = {
+  background: "linear-gradient(135deg, #4a90d9 0%, #1a73e8 50%, #6c5ce7 100%)",
+  padding: "3px",
+  borderRadius: "12px",
+  position: "sticky",
+  top: 0,
+  zIndex: 20,
+};
+
+const toolbarInnerStyle: React.CSSProperties = {
+  background: "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+  borderRadius: "10px",
+  border: "1px solid rgba(255,255,255,0.25)",
+  padding: "0 8px",
+  display: "flex",
+  alignItems: "center",
+  gap: "1px",
+  height: "40px",
+  overflowX: "auto",
+  overflowY: "hidden",
+  whiteSpace: "nowrap",
+  scrollbarWidth: "none" as any,
+};
 
 export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivElement> }) {
   const [sel, setSel] = useState<SelState>({ hasRange: false, bold: false, italic: false, underline: false, strike: false });
@@ -260,70 +274,96 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
   const disabled = !sel.hasRange;
 
   return (
-    <div data-tour="format" className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur-md">
-      <div className="max-w-5xl mx-auto px-3 py-1.5 flex flex-wrap items-center gap-0.5">
+    <div data-tour="format" style={toolbarWrapStyle}>
+      <div style={toolbarInnerStyle}>
         <Btn onClick={() => cmd("undo")} title="Undo"><Undo2 className="h-4 w-4" /></Btn>
         <Btn onClick={() => cmd("redo")} title="Redo"><Redo2 className="h-4 w-4" /></Btn>
         <Sep />
 
-        <Select
+        <GlassSelect
           disabled={disabled}
           ariaLabel="Font"
           value=""
           onChange={(v) => cmd("fontName", v)}
           options={FONTS.map((f) => ({ value: f.v, label: f.l, style: { fontFamily: f.v } }))}
-          placeholder={<><Type className="h-3.5 w-3.5" /> Font</>}
-          width={130}
+          placeholder={<><Type className="h-3 w-3 opacity-80" /> <span>Font</span></>}
+          width={110}
         />
-        <Select
+        <GlassSelect
           disabled={disabled}
           ariaLabel="Size"
           value=""
           onChange={(v) => cmd("fontSize", v)}
           options={SIZES.map((s) => ({ value: s, label: SIZE_LABELS[s] }))}
-          placeholder={<>{SIZE_LABELS["3"]}</>}
-          width={64}
+          placeholder={<span>{SIZE_LABELS["3"]}</span>}
+          width={52}
         />
         <Sep />
 
-        <Btn active={sel.bold} disabled={disabled} onClick={() => cmd("bold")} title="Bold (⌘B)"><Bold className="h-4 w-4" /></Btn>
-        <Btn active={sel.italic} disabled={disabled} onClick={() => cmd("italic")} title="Italic (⌘I)"><Italic className="h-4 w-4" /></Btn>
-        <Btn active={sel.underline} disabled={disabled} onClick={() => cmd("underline")} title="Underline (⌘U)"><Underline className="h-4 w-4" /></Btn>
-        <Btn active={sel.strike} disabled={disabled} onClick={() => cmd("strikeThrough")} title="Strike"><Strikethrough className="h-4 w-4" /></Btn>
+        <Btn active={sel.bold} disabled={disabled} onClick={() => cmd("bold")} title="Bold (⌘B)">
+          <Bold className="h-4 w-4" />
+        </Btn>
+        <Btn active={sel.italic} disabled={disabled} onClick={() => cmd("italic")} title="Italic (⌘I)">
+          <Italic className="h-4 w-4" />
+        </Btn>
+        <Btn active={sel.underline} disabled={disabled} onClick={() => cmd("underline")} title="Underline (⌘U)">
+          <Underline className="h-4 w-4" />
+        </Btn>
+        <Btn active={sel.strike} disabled={disabled} onClick={() => cmd("strikeThrough")} title="Strikethrough">
+          <Strikethrough className="h-4 w-4" />
+        </Btn>
         <Sep />
 
         <Swatch disabled={disabled} colors={TEXT_COLORS} onPick={(c) => cmd("foreColor", c)} title="Text color"
-          icon={<span className="font-bold text-sm leading-none">A</span>} />
+          icon={
+            <span className="flex flex-col items-center gap-[2px]">
+              <span className="font-bold text-sm leading-none text-white">A</span>
+              <span className="w-3 h-[3px] rounded-full bg-red-400 block" />
+            </span>
+          }
+        />
         <Swatch disabled={disabled} colors={HIGHLIGHT_COLORS} onPick={(c) => cmd("hiliteColor", c)} title="Highlight"
-          icon={<Highlighter className="h-4 w-4" />} />
+          icon={<Highlighter className="h-4 w-4" />}
+        />
         <GradientPicker disabled={disabled} title="Gradient text"
-          icon={<Sparkles className="h-4 w-4" />}
+          icon={
+            <span className="flex items-center gap-1">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-[9px] font-semibold px-1 py-px rounded bg-white/30 text-white leading-tight">new</span>
+            </span>
+          }
           onPick={(g) => {
             if (!sel.hasRange) restore();
             editorRef.current?.focus();
             applyGradientText(g);
-          }} />
+          }}
+        />
         <GradientPicker disabled={disabled} title="Gradient highlight"
-          icon={<span className="text-xs font-bold">▮</span>}
+          icon={<span className="text-xs font-bold text-white">▮</span>}
           onPick={(g) => {
             if (!sel.hasRange) restore();
             editorRef.current?.focus();
             applyGradientHighlight(g);
-          }} />
+          }}
+        />
         <Btn disabled={disabled} title="Clear gradient"
           onClick={() => { if (!sel.hasRange) restore(); editorRef.current?.focus(); clearGradients(); }}>
           <Eraser className="h-4 w-4" />
         </Btn>
         <Sep />
 
-        <Select disabled={disabled} ariaLabel="Line height" value=""
+        <GlassSelect disabled={disabled} ariaLabel="Line height" value=""
           onChange={(v) => { if (!sel.hasRange) restore(); applyToBlocks((el) => { el.style.lineHeight = v; }); }}
           options={LINE_HEIGHTS.map((x) => ({ value: x.v, label: x.l }))}
-          placeholder={<><AlignJustify className="h-3.5 w-3.5" /> Line</>} width={88} />
-        <Select disabled={disabled} ariaLabel="Letter spacing" value=""
+          placeholder={<><AlignJustify className="h-3 w-3 opacity-80" /></>}
+          width={52}
+        />
+        <GlassSelect disabled={disabled} ariaLabel="Letter spacing" value=""
           onChange={(v) => { if (!sel.hasRange) restore(); wrapSelection({ letterSpacing: v }, "tracking"); }}
           options={LETTER_SPACINGS.map((x) => ({ value: x.v, label: x.l }))}
-          placeholder={<><span className="font-mono text-[10px]">A→A</span></>} width={88} />
+          placeholder={<span className="font-mono text-[10px]">A→A</span>}
+          width={60}
+        />
         <Sep />
 
         <Btn disabled={disabled} onClick={() => cmd("formatBlock", "H1")} title="Heading 1"><Heading1 className="h-4 w-4" /></Btn>
@@ -346,15 +386,24 @@ export function DocToolbar({ editorRef }: { editorRef: React.RefObject<HTMLDivEl
         }} title="Insert link"><LinkIcon className="h-4 w-4" /></Btn>
         <Btn disabled={disabled} onClick={() => cmd("removeFormat")} title="Clear formatting"><RemoveFormatting className="h-4 w-4" /></Btn>
 
-        <div className="ml-auto text-[11px] text-muted-foreground pr-1">
-          {disabled ? "select text to format" : "ready"}
+        <div className="ml-auto flex items-center gap-1.5 pl-2 flex-shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-white/70 block" />
+          <span className="text-[11px] text-white/60 pr-1 whitespace-nowrap">
+            {disabled ? "select text" : "ready"}
+          </span>
         </div>
       </div>
     </div>
   );
 }
 
-function Btn({ children, onClick, active, disabled, title }: { children: React.ReactNode; onClick?: () => void; active?: boolean; disabled?: boolean; title?: string }) {
+// ─── Sub-components ────────────────────────────────────────────────────────
+
+function Btn({
+  children, onClick, active, disabled, title,
+}: {
+  children: React.ReactNode; onClick?: () => void; active?: boolean; disabled?: boolean; title?: string;
+}) {
   return (
     <button
       type="button"
@@ -362,9 +411,27 @@ function Btn({ children, onClick, active, disabled, title }: { children: React.R
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`h-8 w-8 grid place-items-center rounded-md text-sm transition-colors ${
-        disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"
-      } ${active ? "bg-primary/15 text-primary" : "text-foreground"}`}
+      style={{
+        height: 30,
+        minWidth: 30,
+        padding: "0 7px",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 6,
+        border: "none",
+        background: active ? "rgba(255,255,255,0.28)" : "transparent",
+        cursor: disabled ? "not-allowed" : "pointer",
+        color: "rgba(255,255,255,0.9)",
+        fontSize: 13,
+        gap: 3,
+        flexShrink: 0,
+        opacity: disabled ? 0.35 : 1,
+        boxShadow: active ? "inset 0 1px 0 rgba(255,255,255,0.3)" : "none",
+        transition: "background 0.12s",
+      }}
+      onMouseEnter={(e) => { if (!disabled) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.22)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = active ? "rgba(255,255,255,0.28)" : "transparent"; }}
     >
       {children}
     </button>
@@ -372,22 +439,38 @@ function Btn({ children, onClick, active, disabled, title }: { children: React.R
 }
 
 function Sep() {
-  return <div className="h-5 w-px bg-border mx-1" />;
+  return (
+    <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.25)", margin: "0 3px", flexShrink: 0 }} />
+  );
 }
 
-function Select({
-  options, onChange, disabled, placeholder, width = 110, ariaLabel,
+function GlassSelect({
+  options, onChange, disabled, placeholder, width = 90, ariaLabel,
 }: {
   value: string; onChange: (v: string) => void; disabled?: boolean;
   options: { value: string; label: string; style?: React.CSSProperties }[];
   placeholder: React.ReactNode; width?: number; ariaLabel?: string;
 }) {
   return (
-    <div className="relative" style={{ width }}>
+    <div className="relative" style={{ width, flexShrink: 0 }}>
       <div
-        className={`h-8 w-full inline-flex items-center gap-1 rounded-md px-2 text-xs border bg-card pointer-events-none ${
-          disabled ? "opacity-40" : ""
-        }`}
+        style={{
+          height: 30,
+          width: "100%",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          borderRadius: 6,
+          padding: "0 8px",
+          fontSize: 12,
+          border: "1px solid rgba(255,255,255,0.25)",
+          background: "rgba(255,255,255,0.15)",
+          color: "rgba(255,255,255,0.95)",
+          pointerEvents: "none",
+          opacity: disabled ? 0.35 : 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
       >
         {placeholder}
       </div>
@@ -397,7 +480,13 @@ function Select({
         defaultValue=""
         onMouseDown={(e) => e.stopPropagation()}
         onChange={(e) => { onChange(e.target.value); e.currentTarget.value = ""; }}
-        className={`absolute inset-0 opacity-0 ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity: 0,
+          cursor: disabled ? "not-allowed" : "pointer",
+          width: "100%",
+        }}
       >
         <option value="" disabled hidden></option>
         {options.map((o) => (
@@ -408,26 +497,37 @@ function Select({
   );
 }
 
-function Swatch({ colors, onPick, disabled, title, icon }: { colors: string[]; onPick: (c: string) => void; disabled?: boolean; title?: string; icon: React.ReactNode }) {
+function Swatch({
+  colors, onPick, disabled, title, icon,
+}: {
+  colors: string[]; onPick: (c: string) => void; disabled?: boolean; title?: string; icon: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
+    <div className="relative" style={{ flexShrink: 0 }}>
       <button
         type="button"
         disabled={disabled}
         title={title}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => setOpen((o) => !o)}
-        className={`h-8 w-8 grid place-items-center rounded-md transition-colors ${
-          disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"
-        }`}
+        style={{
+          height: 30, minWidth: 30, padding: "0 7px",
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 6, border: "none", background: "transparent",
+          cursor: disabled ? "not-allowed" : "pointer",
+          color: "rgba(255,255,255,0.9)", opacity: disabled ? 0.35 : 1,
+          transition: "background 0.12s",
+        }}
+        onMouseEnter={(e) => { if (!disabled) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.22)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
       >
         {icon}
       </button>
       {open && !disabled && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute top-9 left-0 z-40 p-2 rounded-md border bg-popover shadow-pop"
+          <div className="absolute top-9 left-0 z-40 p-2 rounded-lg border border-border bg-popover shadow-pop"
             style={{ display: "grid", gridTemplateColumns: "repeat(10, minmax(0, 1fr))", gap: 4, width: 240 }}>
             {colors.map((c, i) => (
               <button key={`${c}-${i}`} onMouseDown={(e) => e.preventDefault()}
@@ -444,22 +544,37 @@ function Swatch({ colors, onPick, disabled, title, icon }: { colors: string[]; o
   );
 }
 
-function GradientPicker({ onPick, disabled, title, icon }: { onPick: (g: string) => void; disabled?: boolean; title?: string; icon: React.ReactNode }) {
+function GradientPicker({
+  onPick, disabled, title, icon,
+}: {
+  onPick: (g: string) => void; disabled?: boolean; title?: string; icon: React.ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="relative">
-      <button type="button" disabled={disabled} title={title}
+    <div className="relative" style={{ flexShrink: 0 }}>
+      <button
+        type="button"
+        disabled={disabled}
+        title={title}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => setOpen((o) => !o)}
-        className={`h-8 w-8 grid place-items-center rounded-md transition-colors ${
-          disabled ? "opacity-40 cursor-not-allowed" : "hover:bg-muted"
-        }`}>
+        style={{
+          height: 30, minWidth: 30, padding: "0 7px",
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          borderRadius: 6, border: "none", background: "transparent",
+          cursor: disabled ? "not-allowed" : "pointer",
+          color: "rgba(255,255,255,0.9)", opacity: disabled ? 0.35 : 1,
+          transition: "background 0.12s",
+        }}
+        onMouseEnter={(e) => { if (!disabled) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.22)"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+      >
         {icon}
       </button>
       {open && !disabled && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute top-9 left-0 z-40 p-2 rounded-md border bg-popover shadow-pop w-56 space-y-1">
+          <div className="absolute top-9 left-0 z-40 p-2 rounded-lg border border-border bg-popover shadow-pop w-56 space-y-1">
             {GRADIENTS.map((g) => (
               <button key={g.l} onMouseDown={(e) => e.preventDefault()}
                 onClick={() => { onPick(g.v); setOpen(false); }}
