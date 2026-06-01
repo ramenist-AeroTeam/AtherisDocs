@@ -112,12 +112,75 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_chat: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          match_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          match_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      arena_maps: {
+        Row: {
+          bg_from: string
+          bg_to: string
+          created_at: string
+          description: string
+          emoji: string
+          id: string
+          is_active: boolean
+          name: string
+          theme: string
+        }
+        Insert: {
+          bg_from?: string
+          bg_to?: string
+          created_at?: string
+          description?: string
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          theme?: string
+        }
+        Update: {
+          bg_from?: string
+          bg_to?: string
+          created_at?: string
+          description?: string
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          theme?: string
+        }
+        Relationships: []
+      }
       arena_matches: {
         Row: {
           created_at: string
           created_by: string
           ended_at: string | null
           id: string
+          is_bot_match: boolean
+          map_id: string | null
+          match_deadline: string | null
           max_players: number
           mode: string
           round_deadline: string | null
@@ -132,6 +195,9 @@ export type Database = {
           created_by: string
           ended_at?: string | null
           id?: string
+          is_bot_match?: boolean
+          map_id?: string | null
+          match_deadline?: string | null
           max_players: number
           mode: string
           round_deadline?: string | null
@@ -146,6 +212,9 @@ export type Database = {
           created_by?: string
           ended_at?: string | null
           id?: string
+          is_bot_match?: boolean
+          map_id?: string | null
+          match_deadline?: string | null
           max_players?: number
           mode?: string
           round_deadline?: string | null
@@ -155,13 +224,22 @@ export type Database = {
           status?: string
           winner_team?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "arena_matches_map_id_fkey"
+            columns: ["map_id"]
+            isOneToOne: false
+            referencedRelation: "arena_maps"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       arena_players: {
         Row: {
           current_move: string | null
           hp: number
           id: string
+          is_bot: boolean
           joined_at: string
           last_seen: string
           locked_move: string | null
@@ -170,11 +248,13 @@ export type Database = {
           slot: number
           team: number
           user_id: string
+          warrior_id: string | null
         }
         Insert: {
           current_move?: string | null
           hp?: number
           id?: string
+          is_bot?: boolean
           joined_at?: string
           last_seen?: string
           locked_move?: string | null
@@ -183,11 +263,13 @@ export type Database = {
           slot: number
           team: number
           user_id: string
+          warrior_id?: string | null
         }
         Update: {
           current_move?: string | null
           hp?: number
           id?: string
+          is_bot?: boolean
           joined_at?: string
           last_seen?: string
           locked_move?: string | null
@@ -196,6 +278,7 @@ export type Database = {
           slot?: number
           team?: number
           user_id?: string
+          warrior_id?: string | null
         }
         Relationships: [
           {
@@ -203,6 +286,13 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "arena_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arena_players_warrior_id_fkey"
+            columns: ["warrior_id"]
+            isOneToOne: false
+            referencedRelation: "user_warriors"
             referencedColumns: ["id"]
           },
         ]
@@ -605,11 +695,101 @@ export type Database = {
         }
         Relationships: []
       }
+      user_warriors: {
+        Row: {
+          created_at: string
+          id: string
+          is_equipped: boolean
+          nickname: string
+          template_id: string
+          trophies: number
+          user_id: string
+          weapon_1_level: number
+          weapon_2_level: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_equipped?: boolean
+          nickname?: string
+          template_id: string
+          trophies?: number
+          user_id: string
+          weapon_1_level?: number
+          weapon_2_level?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_equipped?: boolean
+          nickname?: string
+          template_id?: string
+          trophies?: number
+          user_id?: string
+          weapon_1_level?: number
+          weapon_2_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_warriors_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "warrior_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warrior_templates: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          is_active: boolean
+          name: string
+          rarity: string
+          tagline: string
+          weapon_1_emoji: string
+          weapon_1_name: string
+          weapon_2_emoji: string
+          weapon_2_name: string
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          rarity?: string
+          tagline?: string
+          weapon_1_emoji?: string
+          weapon_1_name?: string
+          weapon_2_emoji?: string
+          weapon_2_name?: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          rarity?: string
+          tagline?: string
+          weapon_1_emoji?: string
+          weapon_1_name?: string
+          weapon_2_emoji?: string
+          weapon_2_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      award_arena_trophies: {
+        Args: { _match_id: string; _winner_team: number }
+        Returns: undefined
+      }
       ensure_auto_property: {
         Args: { _display_name?: string; _user_id: string }
         Returns: string
@@ -627,6 +807,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      grant_starter_warrior: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -635,6 +816,10 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      upgrade_warrior_weapon: {
+        Args: { _slot: number; _warrior_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "owner" | "co_owner" | "dev" | "member" | "custom"
