@@ -741,10 +741,14 @@ export type Database = {
       }
       warrior_templates: {
         Row: {
+          battle_sprite_url: string | null
           created_at: string
+          draw_gif_url: string | null
           emoji: string
+          icon_url: string | null
           id: string
           is_active: boolean
+          lose_gif_url: string | null
           name: string
           rarity: string
           tagline: string
@@ -752,12 +756,17 @@ export type Database = {
           weapon_1_name: string
           weapon_2_emoji: string
           weapon_2_name: string
+          win_gif_url: string | null
         }
         Insert: {
+          battle_sprite_url?: string | null
           created_at?: string
+          draw_gif_url?: string | null
           emoji?: string
+          icon_url?: string | null
           id?: string
           is_active?: boolean
+          lose_gif_url?: string | null
           name: string
           rarity?: string
           tagline?: string
@@ -765,12 +774,17 @@ export type Database = {
           weapon_1_name?: string
           weapon_2_emoji?: string
           weapon_2_name?: string
+          win_gif_url?: string | null
         }
         Update: {
+          battle_sprite_url?: string | null
           created_at?: string
+          draw_gif_url?: string | null
           emoji?: string
+          icon_url?: string | null
           id?: string
           is_active?: boolean
+          lose_gif_url?: string | null
           name?: string
           rarity?: string
           tagline?: string
@@ -778,6 +792,7 @@ export type Database = {
           weapon_1_name?: string
           weapon_2_emoji?: string
           weapon_2_name?: string
+          win_gif_url?: string | null
         }
         Relationships: []
       }
