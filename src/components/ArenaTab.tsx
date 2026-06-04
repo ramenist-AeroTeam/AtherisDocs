@@ -801,8 +801,12 @@ function TeamPanel({ label, players, profiles, warriors, templates, hp, accent, 
           const pct = Math.max(0, Math.min(100, (p.hp / hp) * 100));
           const dead = p.hp <= 0;
           return (
-            <div key={p.id} className={`flex items-center gap-2 ${dead ? "opacity-40" : ""}`}>
-              <AvatarBubble profile={prof} />
+            <div key={p.id} className={`flex items-center gap-3 ${dead ? "opacity-40" : ""}`}>
+              {tpl?.battle_sprite_url ? (
+                <img src={tpl.battle_sprite_url} alt="" className={`h-14 w-14 object-contain shrink-0 ${mine ? "" : "-scale-x-100"}`} />
+              ) : (
+                <AvatarBubble profile={prof} />
+              )}
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium truncate flex items-center gap-1">
                   {tpl && <span>{tpl.emoji}</span>}
