@@ -23,6 +23,8 @@ type Profile = { user_id: string; display_name: string; avatar_url: string | nul
 type Template = {
   id: string; name: string; emoji: string; rarity: string; tagline: string;
   weapon_1_name: string; weapon_1_emoji: string; weapon_2_name: string; weapon_2_emoji: string;
+  icon_url: string | null; battle_sprite_url: string | null;
+  draw_gif_url: string | null; lose_gif_url: string | null; win_gif_url: string | null;
 };
 type Warrior = {
   id: string; user_id: string; template_id: string; nickname: string;
@@ -437,7 +439,11 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
           const r = RARITY[tpl.rarity] || RARITY.common;
           return (
             <div className="p-4 rounded-xl border bg-gradient-to-r from-card to-muted/40 flex items-center gap-4">
-              <div className="text-4xl">{tpl.emoji}</div>
+              {tpl.icon_url ? (
+                <img src={tpl.icon_url} alt={tpl.name} className="h-16 w-16 rounded-lg object-cover bg-muted shrink-0" />
+              ) : (
+                <div className="text-4xl">{tpl.emoji}</div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-display font-bold">{tpl.name}</span>
@@ -554,7 +560,11 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
           return (
             <div key={w.id} className={`p-4 rounded-xl border-2 bg-card flex flex-col gap-3 ring-2 ${r.ring}`} style={{ borderColor: r.color }}>
               <div className="flex items-start gap-3">
-                <div className="text-5xl">{tpl.emoji}</div>
+                {tpl.icon_url ? (
+                  <img src={tpl.icon_url} alt={tpl.name} className="h-20 w-20 rounded-lg object-cover bg-muted shrink-0" />
+                ) : (
+                  <div className="text-5xl">{tpl.emoji}</div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-display font-bold text-lg">{tpl.name}</span>
@@ -657,13 +667,19 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
             <>
               <div className="grid grid-cols-2 gap-4">
                 <TeamPanel label="Your team" players={mine} profiles={profiles} warriors={warriors} templates={templates} hp={meta.hp} accent={meta.color} mine />
-                {m.is_bot_match ? (
+                {m.is_bot_match ? (() => {
+                  const botTpl = templates.find((t) => t.rarity === "common") || templates[0];
+                  return (
                   <div className="p-4 rounded-xl border bg-card">
                     <div className="text-[10px] uppercase tracking-wider mb-2 text-muted-foreground">Opponent</div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-full bg-amber-500/20 grid place-items-center"><Bot className="h-4 w-4 text-amber-600" /></div>
+                    <div className="flex items-center gap-3">
+                      {botTpl?.battle_sprite_url ? (
+                        <img src={botTpl.battle_sprite_url} alt="" className="h-16 w-16 object-contain -scale-x-100 shrink-0" />
+                      ) : (
+                        <div className="h-7 w-7 rounded-full bg-amber-500/20 grid place-items-center"><Bot className="h-4 w-4 text-amber-600" /></div>
+                      )}
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium truncate">{BOT_NAME}</div>
+                        <div className="text-xs font-medium truncate flex items-center gap-1"><Bot className="h-3 w-3" /> {BOT_NAME}</div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden mt-0.5">
                           <div className="h-full transition-all bg-amber-500" style={{ width: `${Math.max(0, Math.min(100, (botHp / meta.hp) * 100))}%` }} />
                         </div>
@@ -671,7 +687,8 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
                       <div className="text-[10px] font-mono w-12 text-right">{botHp}/{meta.hp}</div>
                     </div>
                   </div>
-                ) : (
+                  );
+                })() : (
                   <TeamPanel label="Opponents" players={them} profiles={profiles} warriors={warriors} templates={templates} hp={meta.hp} accent="hsl(0 0% 50%)" />
                 )}
               </div>
@@ -698,18 +715,29 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
             </>
           )}
 
-          {m.status === "done" && (
-            <div className="p-8 rounded-xl border bg-card text-center space-y-3">
-              <Trophy className="h-12 w-12 mx-auto text-yellow-500" />
-              <div className="text-2xl font-display font-bold">
-                {m.winner_team === 0 ? "Draw" : m.winner_team === myTeam ? "Victory!" : "Defeat"}
+          {m.status === "done" && (() => {
+            const myWarrior = warriors.find((w) => w.id === me?.warrior_id);
+            const myTpl = myWarrior ? templates.find((t) => t.id === myWarrior.template_id) : null;
+            const outcome = m.winner_team === 0 ? "draw" : m.winner_team === myTeam ? "win" : "lose";
+            const gif = outcome === "win" ? myTpl?.win_gif_url : outcome === "lose" ? myTpl?.lose_gif_url : myTpl?.draw_gif_url;
+            const poster = myTpl?.battle_sprite_url || myTpl?.icon_url || null;
+            return (
+              <div className="p-8 rounded-xl border bg-card text-center space-y-3">
+                {gif ? (
+                  <PlayOnceGif gif={gif} poster={poster} className="h-40 mx-auto object-contain" durationMs={2200} />
+                ) : (
+                  <Trophy className="h-12 w-12 mx-auto text-yellow-500" />
+                )}
+                <div className="text-3xl font-display font-bold">
+                  {outcome === "draw" ? "Draw." : outcome === "win" ? "Victory!" : "Defeat!"}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {outcome === "draw" ? "0 🏆 · No trophies exchanged." : outcome === "win" ? "+10 🏆 trophies." : "−5 🏆 trophies."}
+                </div>
+                <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}>Exit</Button>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {m.winner_team === 0 ? "No trophies exchanged." : m.winner_team === myTeam ? "+10 trophies." : "−5 trophies."}
-              </div>
-              <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}>Back to Lobby</Button>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Chat */}
@@ -773,8 +801,12 @@ function TeamPanel({ label, players, profiles, warriors, templates, hp, accent, 
           const pct = Math.max(0, Math.min(100, (p.hp / hp) * 100));
           const dead = p.hp <= 0;
           return (
-            <div key={p.id} className={`flex items-center gap-2 ${dead ? "opacity-40" : ""}`}>
-              <AvatarBubble profile={prof} />
+            <div key={p.id} className={`flex items-center gap-3 ${dead ? "opacity-40" : ""}`}>
+              {tpl?.battle_sprite_url ? (
+                <img src={tpl.battle_sprite_url} alt="" className={`h-14 w-14 object-contain shrink-0 ${mine ? "" : "-scale-x-100"}`} />
+              ) : (
+                <AvatarBubble profile={prof} />
+              )}
               <div className="flex-1 min-w-0">
                 <div className="text-xs font-medium truncate flex items-center gap-1">
                   {tpl && <span>{tpl.emoji}</span>}
@@ -796,4 +828,19 @@ function TeamPanel({ label, players, profiles, warriors, templates, hp, accent, 
       </div>
     </div>
   );
+}
+
+// Renders a GIF for `durationMs`, then swaps to a static poster so the animation only plays ONCE.
+function PlayOnceGif({ gif, poster, durationMs = 2000, className }: {
+  gif: string; poster: string | null; durationMs?: number; className?: string;
+}) {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setDone(false);
+    const t = setTimeout(() => setDone(true), durationMs);
+    return () => clearTimeout(t);
+  }, [gif, durationMs]);
+  // Cache-bust GIF on each mount so it always restarts from frame 0 instead of resuming a cached loop.
+  const src = done && poster ? poster : `${gif}${gif.includes("?") ? "&" : "?"}_t=${Math.floor(Date.now() / 1000)}`;
+  return <img src={src} alt="" className={className} />;
 }
