@@ -829,3 +829,18 @@ function TeamPanel({ label, players, profiles, warriors, templates, hp, accent, 
     </div>
   );
 }
+
+// Renders a GIF for `durationMs`, then swaps to a static poster so the animation only plays ONCE.
+function PlayOnceGif({ gif, poster, durationMs = 2000, className }: {
+  gif: string; poster: string | null; durationMs?: number; className?: string;
+}) {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setDone(false);
+    const t = setTimeout(() => setDone(true), durationMs);
+    return () => clearTimeout(t);
+  }, [gif, durationMs]);
+  // Cache-bust GIF on each mount so it always restarts from frame 0 instead of resuming a cached loop.
+  const src = done && poster ? poster : `${gif}${gif.includes("?") ? "&" : "?"}_t=${Math.floor(Date.now() / 1000)}`;
+  return <img src={src} alt="" className={className} />;
+}
