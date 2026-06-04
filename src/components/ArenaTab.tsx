@@ -560,7 +560,11 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
           return (
             <div key={w.id} className={`p-4 rounded-xl border-2 bg-card flex flex-col gap-3 ring-2 ${r.ring}`} style={{ borderColor: r.color }}>
               <div className="flex items-start gap-3">
-                <div className="text-5xl">{tpl.emoji}</div>
+                {tpl.icon_url ? (
+                  <img src={tpl.icon_url} alt={tpl.name} className="h-20 w-20 rounded-lg object-cover bg-muted shrink-0" />
+                ) : (
+                  <div className="text-5xl">{tpl.emoji}</div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-display font-bold text-lg">{tpl.name}</span>
