@@ -708,18 +708,29 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
             </>
           )}
 
-          {m.status === "done" && (
-            <div className="p-8 rounded-xl border bg-card text-center space-y-3">
-              <Trophy className="h-12 w-12 mx-auto text-yellow-500" />
-              <div className="text-2xl font-display font-bold">
-                {m.winner_team === 0 ? "Draw" : m.winner_team === myTeam ? "Victory!" : "Defeat"}
+          {m.status === "done" && (() => {
+            const myWarrior = warriors.find((w) => w.id === me?.warrior_id);
+            const myTpl = myWarrior ? templates.find((t) => t.id === myWarrior.template_id) : null;
+            const outcome = m.winner_team === 0 ? "draw" : m.winner_team === myTeam ? "win" : "lose";
+            const gif = outcome === "win" ? myTpl?.win_gif_url : outcome === "lose" ? myTpl?.lose_gif_url : myTpl?.draw_gif_url;
+            const poster = myTpl?.battle_sprite_url || myTpl?.icon_url || null;
+            return (
+              <div className="p-8 rounded-xl border bg-card text-center space-y-3">
+                {gif ? (
+                  <PlayOnceGif gif={gif} poster={poster} className="h-40 mx-auto object-contain" durationMs={2200} />
+                ) : (
+                  <Trophy className="h-12 w-12 mx-auto text-yellow-500" />
+                )}
+                <div className="text-3xl font-display font-bold">
+                  {outcome === "draw" ? "Draw." : outcome === "win" ? "Victory!" : "Defeat!"}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {outcome === "draw" ? "0 🏆 · No trophies exchanged." : outcome === "win" ? "+10 🏆 trophies." : "−5 🏆 trophies."}
+                </div>
+                <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}>Exit</Button>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {m.winner_team === 0 ? "No trophies exchanged." : m.winner_team === myTeam ? "+10 trophies." : "−5 trophies."}
-              </div>
-              <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}>Back to Lobby</Button>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Chat */}
