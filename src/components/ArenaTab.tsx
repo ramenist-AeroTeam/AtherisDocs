@@ -23,6 +23,8 @@ type Profile = { user_id: string; display_name: string; avatar_url: string | nul
 type Template = {
   id: string; name: string; emoji: string; rarity: string; tagline: string;
   weapon_1_name: string; weapon_1_emoji: string; weapon_2_name: string; weapon_2_emoji: string;
+  icon_url: string | null; battle_sprite_url: string | null;
+  draw_gif_url: string | null; lose_gif_url: string | null; win_gif_url: string | null;
 };
 type Warrior = {
   id: string; user_id: string; template_id: string; nickname: string;
