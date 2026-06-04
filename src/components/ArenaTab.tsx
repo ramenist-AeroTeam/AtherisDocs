@@ -439,7 +439,11 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
           const r = RARITY[tpl.rarity] || RARITY.common;
           return (
             <div className="p-4 rounded-xl border bg-gradient-to-r from-card to-muted/40 flex items-center gap-4">
-              <div className="text-4xl">{tpl.emoji}</div>
+              {tpl.icon_url ? (
+                <img src={tpl.icon_url} alt={tpl.name} className="h-16 w-16 rounded-lg object-cover bg-muted shrink-0" />
+              ) : (
+                <div className="text-4xl">{tpl.emoji}</div>
+              )}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-display font-bold">{tpl.name}</span>
