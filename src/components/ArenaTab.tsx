@@ -667,13 +667,19 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
             <>
               <div className="grid grid-cols-2 gap-4">
                 <TeamPanel label="Your team" players={mine} profiles={profiles} warriors={warriors} templates={templates} hp={meta.hp} accent={meta.color} mine />
-                {m.is_bot_match ? (
+                {m.is_bot_match ? (() => {
+                  const botTpl = templates.find((t) => t.rarity === "common") || templates[0];
+                  return (
                   <div className="p-4 rounded-xl border bg-card">
                     <div className="text-[10px] uppercase tracking-wider mb-2 text-muted-foreground">Opponent</div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-full bg-amber-500/20 grid place-items-center"><Bot className="h-4 w-4 text-amber-600" /></div>
+                    <div className="flex items-center gap-3">
+                      {botTpl?.battle_sprite_url ? (
+                        <img src={botTpl.battle_sprite_url} alt="" className="h-16 w-16 object-contain -scale-x-100 shrink-0" />
+                      ) : (
+                        <div className="h-7 w-7 rounded-full bg-amber-500/20 grid place-items-center"><Bot className="h-4 w-4 text-amber-600" /></div>
+                      )}
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium truncate">{BOT_NAME}</div>
+                        <div className="text-xs font-medium truncate flex items-center gap-1"><Bot className="h-3 w-3" /> {BOT_NAME}</div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden mt-0.5">
                           <div className="h-full transition-all bg-amber-500" style={{ width: `${Math.max(0, Math.min(100, (botHp / meta.hp) * 100))}%` }} />
                         </div>
@@ -681,7 +687,8 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
                       <div className="text-[10px] font-mono w-12 text-right">{botHp}/{meta.hp}</div>
                     </div>
                   </div>
-                ) : (
+                  );
+                })() : (
                   <TeamPanel label="Opponents" players={them} profiles={profiles} warriors={warriors} templates={templates} hp={meta.hp} accent="hsl(0 0% 50%)" />
                 )}
               </div>
