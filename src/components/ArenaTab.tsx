@@ -898,3 +898,21 @@ function PlayOnceGif({ gif, poster, durationMs = 2000, className }: {
   const src = done && poster ? poster : `${gif}${gif.includes("?") ? "&" : "?"}_t=${Math.floor(Date.now() / 1000)}`;
   return <img src={src} alt="" className={className} />;
 }
+
+function RailButton({ emoji, label, sublabel, onClick, highlight }: {
+  emoji: string; label: string; sublabel?: string; onClick?: () => void; highlight?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group flex flex-col items-center gap-1 px-2 py-3 rounded-2xl border text-white transition shadow-lg
+        ${highlight
+          ? "bg-gradient-to-b from-amber-400/40 to-amber-600/20 border-amber-300/40 hover:from-amber-400/60"
+          : "bg-white/5 border-white/15 hover:bg-white/10"}`}
+    >
+      <div className="text-3xl drop-shadow">{emoji}</div>
+      <div className="text-[11px] font-display font-bold uppercase tracking-wide text-center leading-tight">{label}</div>
+      {sublabel && <div className="text-[10px] text-white/60 font-mono">{sublabel}</div>}
+    </button>
+  );
+}
