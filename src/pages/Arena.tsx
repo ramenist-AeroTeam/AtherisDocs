@@ -31,15 +31,12 @@ export default function Arena() {
   useEffect(() => {
     if (!userId) return;
     const load = async () => {
-      const [p, t, inv] = await Promise.all([
+      const [p, t] = await Promise.all([
         supabase.from("profiles").select("user_id,display_name,avatar_url,level,noodles,lumina").eq("user_id", userId).maybeSingle(),
         supabase.from("user_tabs").select("id,kind").eq("user_id", userId).eq("kind", "arena").limit(1),
-        supabase.from("user_inventory").select("quantity").eq("user_id", userId).eq("item_key", "noodle_packet").maybeSingle().then(
-          (r) => r, () => ({ data: null } as any),
-        ),
       ]);
       setMe((p.data as Profile) || null);
-      setPackets(((inv as any)?.data?.quantity as number) || 0);
+      setPackets(0);
       let tab = (t.data as any[])?.[0];
       if (!tab) {
         const { data: created } = await supabase.from("user_tabs")
@@ -89,7 +86,7 @@ export default function Arena() {
       </header>
 
       <main className="flex-1 min-h-0 overflow-y-auto">
-        <ArenaTab tabId={arenaTabId} myUserId={userId} arenaPage />
+        <ArenaTab tabId={arenaTabId} myUserId={userId} />
       </main>
     </div>
   );
