@@ -163,7 +163,10 @@ export default function Index() {
             <PropertyTabBar
               currentId={propertyId}
               myUserId={userId!}
-              onSelect={(t) => { setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind); }}
+              onSelect={(t) => {
+                if (t.kind === "arena") { nav("/arena"); return; }
+                setPropertyId(t.id); setPropertyOwner(t.user_id); setTabKind(t.kind);
+              }}
             />
             <div className="flex-1 min-w-0 relative overflow-auto">
               {tabKind === "html" ? (

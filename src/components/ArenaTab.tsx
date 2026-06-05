@@ -76,7 +76,7 @@ function upgradeCost(level: number) { return 100 * level * level; }
 
 // ============ Component ============
 export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string }) {
-  const [view, setView] = useState<"lobby" | "roster">("lobby");
+  const [view, setView] = useState<"lobby" | "picker" | "roster">("lobby");
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
@@ -401,153 +401,207 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
   if (active) return renderMatch(active);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-5">
-      <header className="flex items-center gap-3">
-        <Swords className="h-7 w-7 text-primary" />
-        <div className="flex-1">
-          <h1 className="text-2xl font-display font-bold tracking-tight">Arena</h1>
-          <p className="text-xs text-muted-foreground">Bring a warrior, pick a map, fight up to 5 minutes. Win +10 trophies · Lose −5.</p>
+    <div className="relative min-h-full">
+      {view === "lobby" && renderLobby()}
+      {view === "picker" && renderPicker()}
+      {view === "roster" && (
+        <div className="max-w-6xl mx-auto p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setView("lobby")} className="h-10 w-10 grid place-items-center rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white">
+              <ArrowUp className="h-4 w-4 -rotate-90" />
+            </button>
+            <h2 className="text-3xl font-display font-bold text-white">Select a warrior!</h2>
+          </div>
+          {renderRoster()}
         </div>
-        <div className="flex items-center gap-1 p-1 rounded-lg border bg-card">
-          <button onClick={() => setView("lobby")} className={`px-3 h-7 rounded-md text-xs font-medium ${view === "lobby" ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}>Lobby</button>
-          <button onClick={() => setView("roster")} className={`px-3 h-7 rounded-md text-xs font-medium ${view === "roster" ? "bg-primary text-primary-foreground" : "hover:bg-muted text-muted-foreground"}`}>My Warriors</button>
-        </div>
-      </header>
-
-      {view === "lobby" ? renderLobby() : renderRoster()}
-
+      )}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-md bg-foreground text-background text-xs shadow-pop z-50">{toast}</div>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-md bg-white text-black text-xs shadow-pop z-50 font-semibold">{toast}</div>
       )}
     </div>
   );
 
   function renderLobby() {
+    const currentMap = maps.find((m) => m.id === chosenMap) || maps[0];
+    const willPlayBots = equippedWarrior ? equippedWarrior.trophies < BOT_THRESHOLD : true;
+    const tpl = equippedWarrior ? templates.find((t) => t.id === equippedWarrior.template_id) : null;
+    const r = tpl ? (RARITY[tpl.rarity] || RARITY.common) : RARITY.common;
+
+    return (
+      <div className="relative h-full min-h-[calc(100vh-3.5rem)] grid grid-cols-[auto_1fr_auto] gap-4 p-4 sm:p-6">
+        {/* Left rail */}
+        <aside className="flex flex-col gap-3 self-start w-[120px] sm:w-[140px]">
+          <RailButton emoji="🏅" label="Trophy Road" sublabel={equippedWarrior ? `${equippedWarrior.trophies} 🏆` : "—"} />
+          <RailButton emoji="📈" label="EXP Road" sublabel="Lv up" />
+          <RailButton emoji="🛡️" label="Warriors" sublabel={`${warriors.length} owned`} onClick={() => setView("roster")} highlight />
+        </aside>
+
+        {/* Center: featured warrior */}
+        <div className="relative flex flex-col items-center justify-center min-h-[55vh]">
+          {tpl ? (
+            <>
+              <div className="text-[11px] font-mono uppercase tracking-[0.3em] text-white/40 mb-1">Featured</div>
+              <div className="font-display text-6xl sm:text-7xl font-black tracking-tight text-white drop-shadow-[0_4px_18px_rgba(0,0,0,0.5)]">{tpl.name}</div>
+              <div className="text-xs mt-1 px-2 py-0.5 rounded font-bold uppercase tracking-wider" style={{ background: `${r.color}33`, color: r.color, border: `1px solid ${r.color}66` }}>{r.label}</div>
+              <div className="relative mt-2 flex-1 grid place-items-center">
+                <div className="absolute inset-0 grid place-items-center pointer-events-none">
+                  <div className="w-[420px] h-[420px] rounded-full blur-3xl opacity-40" style={{ background: `radial-gradient(circle, ${r.color}, transparent 60%)` }} />
+                </div>
+                {tpl.battle_sprite_url ? (
+                  <img src={tpl.battle_sprite_url} alt={tpl.name} className="relative h-[44vh] max-h-[440px] object-contain drop-shadow-[0_18px_30px_rgba(0,0,0,0.55)]" />
+                ) : (
+                  <div className="relative text-[14rem] leading-none">{tpl.emoji}</div>
+                )}
+              </div>
+              <div className="mt-2 flex items-center gap-3 text-sm text-white/80">
+                <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/15 flex items-center gap-1.5">
+                  <span>{tpl.weapon_1_emoji}</span> Lv{equippedWarrior!.weapon_1_level}
+                </span>
+                <span className="px-2.5 py-1 rounded-md bg-white/10 border border-white/15 flex items-center gap-1.5">
+                  <span>{tpl.weapon_2_emoji}</span> Lv{equippedWarrior!.weapon_2_level}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="text-white/60">Loading warriors…</div>
+          )}
+        </div>
+
+        {/* Right gutter — keeps featured warrior centered */}
+        <div className="w-[120px] sm:w-[140px]" />
+
+        {/* Bottom mode card + PLAY */}
+        <div className="col-span-3 mt-auto">
+          <div className="flex items-stretch gap-3 max-w-3xl mx-auto">
+            <div className="flex-1 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/15 px-5 py-3 flex items-center gap-3 text-white shadow-2xl">
+              <div className="text-3xl">⚔️</div>
+              <div className="min-w-0">
+                <div className="font-display font-bold text-lg leading-tight">Showdown 1v1</div>
+                <div className="text-xs text-white/60 truncate">
+                  {currentMap ? `${currentMap.emoji} ${currentMap.name}` : "Pick a map"}
+                  {willPlayBots && <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-200 text-[10px] font-bold uppercase tracking-wider border border-amber-400/30"><Bot className="h-3 w-3 inline mr-0.5" />vs Bots</span>}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setView("picker")}
+              className="px-8 sm:px-12 rounded-2xl font-display font-black text-2xl tracking-wider text-black shadow-2xl transition-transform hover:scale-105 active:scale-95"
+              style={{ background: "linear-gradient(180deg, #f5ff4d, #c9d92a)", boxShadow: "0 10px 0 0 #8a9620, 0 14px 30px rgba(0,0,0,0.5)" }}>
+              PLAY
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderPicker() {
     const blitz = nextBlitzInfo();
     const blitzCountdown = Math.max(0, Math.ceil((blitz.until.getTime() - now) / 1000));
     const blitzMins = Math.floor(blitzCountdown / 60);
     const blitzSecs = blitzCountdown % 60;
-    const currentMap = maps.find((m) => m.id === chosenMap) || maps[0];
-    const willPlayBots = equippedWarrior ? equippedWarrior.trophies < BOT_THRESHOLD : true;
 
     return (
-      <>
-        {/* Equipped warrior banner */}
-        {equippedWarrior && (() => {
-          const tpl = templates.find((t) => t.id === equippedWarrior.template_id);
-          if (!tpl) return null;
-          const r = RARITY[tpl.rarity] || RARITY.common;
-          return (
-            <div className="p-4 rounded-xl border bg-gradient-to-r from-card to-muted/40 flex items-center gap-4">
-              {tpl.icon_url ? (
-                <img src={tpl.icon_url} alt={tpl.name} className="h-16 w-16 rounded-lg object-cover bg-muted shrink-0" />
-              ) : (
-                <div className="text-4xl">{tpl.emoji}</div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-display font-bold">{tpl.name}</span>
-                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: `${r.color}22`, color: r.color }}>{r.label}</span>
-                </div>
-                <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                  <Trophy className="h-3 w-3" /> <span className="font-semibold text-foreground tabular-nums">{equippedWarrior.trophies}</span> trophies
-                  <span>·</span>
-                  <span>{tpl.weapon_1_emoji} Lv{equippedWarrior.weapon_1_level}</span>
-                  <span>{tpl.weapon_2_emoji} Lv{equippedWarrior.weapon_2_level}</span>
-                </div>
-              </div>
-              {willPlayBots && (
-                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded bg-amber-500/15 text-amber-600 flex items-center gap-1">
-                  <Bot className="h-3 w-3" /> vs Bots
-                </span>
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Map picker */}
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Map</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {maps.map((mp) => {
-              const sel = mp.id === chosenMap;
-              return (
-                <button key={mp.id} onClick={() => setChosenMap(mp.id)}
-                  className={`text-left p-3 rounded-xl border overflow-hidden relative transition ${sel ? "ring-2 ring-primary" : "hover:-translate-y-0.5"}`}
-                  style={{ background: `linear-gradient(135deg, ${mp.bg_from}, ${mp.bg_to})`, color: "white" }}>
-                  <div className="text-2xl">{mp.emoji}</div>
-                  <div className="font-semibold text-sm">{mp.name}</div>
-                  <div className="text-[10px] opacity-80 capitalize">{mp.theme}</div>
-                </button>
-              );
-            })}
-          </div>
+      <div className="max-w-5xl mx-auto p-6 space-y-6 text-white">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setView("lobby")} className="h-10 w-10 grid place-items-center rounded-xl bg-white/10 hover:bg-white/20 border border-white/15">
+            <ArrowUp className="h-4 w-4 -rotate-90" />
+          </button>
+          <h2 className="text-3xl font-display font-bold">Select a gamemode!</h2>
         </div>
 
-        {/* Mode picker */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {(Object.keys(MODE_META) as Mode[]).map((m) => {
+        {/* Core modes */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {(Object.keys(MODE_META) as Mode[]).filter((m) => m === "solo" || m === "blitz").map((m) => {
             const meta = MODE_META[m];
             const open = m === "blitz" ? blitz.open : true;
+            const tint = m === "blitz" ? "linear-gradient(180deg, #f5ff4d, #c9d92a)" : "linear-gradient(180deg, #8b6df2, #6647d4)";
             return (
               <button key={m} disabled={busy || !open} onClick={() => createMatch(m)}
-                className={`text-left p-4 rounded-xl border bg-card transition hover:shadow-pop ${!open ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-0.5"}`}
-                style={{ borderColor: open ? meta.color : undefined }}>
-                <div className="text-2xl mb-1">{meta.icon}</div>
-                <div className="font-semibold text-sm">{meta.label}</div>
-                <div className="text-[11px] text-muted-foreground">{meta.hp} HP · {Math.round(meta.roundMs / 1000)}s/round</div>
+                className={`group text-left rounded-2xl overflow-hidden border-2 border-white/15 bg-white/95 text-black transition ${!open ? "opacity-50 cursor-not-allowed" : "hover:-translate-y-1 hover:shadow-2xl"}`}>
+                <div className="px-4 py-3 font-display font-bold text-xl text-white flex items-center gap-2" style={{ background: tint, textShadow: "0 2px 6px rgba(0,0,0,0.25)" }}>
+                  <span className="text-2xl">{meta.icon}</span>
+                  <span>{m === "blitz" ? "Blitz" : "Showdown 1v1"}</span>
+                </div>
+                <div className="aspect-[4/3] grid place-items-center bg-gradient-to-br from-slate-100 to-slate-300 text-slate-400 text-xs font-mono">
+                  {maps[0] ? `${maps[0].emoji} ${maps[0].name}` : "Map preview"}
+                </div>
                 {m === "blitz" && (
-                  <div className="mt-2 text-[10px] font-mono flex items-center gap-1" style={{ color: meta.color }}>
+                  <div className="px-3 py-1.5 text-[11px] font-mono bg-slate-900 text-slate-200 flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {blitz.open ? `Closes in ${blitzMins}:${String(blitzSecs).padStart(2, "0")}` : `Opens in ${blitzMins}:${String(blitzSecs).padStart(2, "0")}`}
+                    {blitz.open ? `Closes ${blitzMins}:${String(blitzSecs).padStart(2, "0")}` : `Opens ${blitzMins}:${String(blitzSecs).padStart(2, "0")}`}
                   </div>
                 )}
-                {open && <div className="mt-2 inline-flex items-center gap-1 text-[11px] text-primary"><Plus className="h-3 w-3" />Create</div>}
               </button>
             );
           })}
-        </section>
-
-        {/* Open lobbies (only show non-bot lobbies — bots auto-start) */}
-        <section>
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Open lobbies</div>
-          {matches.filter((m) => m.status === "lobby" && !m.is_bot_match).length === 0 && (
-            <div className="text-sm text-muted-foreground p-6 border border-dashed rounded-xl text-center">No open lobbies. Create one above.</div>
-          )}
-          <div className="space-y-2">
-            {matches.filter((m) => m.status === "lobby" && !m.is_bot_match).map((m) => {
-              const ps = players.filter((p) => p.match_id === m.id);
-              const meta = MODE_META[m.mode];
-              const full = ps.length >= m.max_players;
-              const iAmIn = ps.some((p) => p.user_id === myUserId);
-              const mapInfo = maps.find((mp) => mp.id === m.map_id);
-              return (
-                <div key={m.id} className="p-3 border rounded-lg bg-card flex items-center gap-3">
-                  <div className="text-xl">{meta.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{meta.label} {mapInfo && <span className="text-muted-foreground font-normal">· {mapInfo.emoji} {mapInfo.name}</span>}</div>
-                    <div className="text-[11px] text-muted-foreground">{ps.length}/{m.max_players} players</div>
-                  </div>
-                  <div className="flex -space-x-1.5">
-                    {ps.map((p) => <AvatarBubble key={p.id} profile={profiles[p.user_id]} />)}
-                    {Array.from({ length: m.max_players - ps.length }).map((_, i) => (
-                      <div key={i} className="h-7 w-7 rounded-full border-2 border-dashed border-muted-foreground/30" />
-                    ))}
-                  </div>
-                  {iAmIn ? (
-                    <>
-                      {m.created_by === myUserId && full && (<Button size="sm" onClick={() => startMatch(m)} disabled={busy}>Start</Button>)}
-                      <Button size="sm" variant="ghost" onClick={() => leaveMatch(m)} disabled={busy}><LogOut className="h-3.5 w-3.5" /></Button>
-                    </>
-                  ) : (<Button size="sm" onClick={() => joinMatch(m)} disabled={busy || full}>Join</Button>)}
+          {/* Duo / Trio as smaller picks */}
+          {(["duo", "trio"] as Mode[]).map((m) => {
+            const meta = MODE_META[m];
+            return (
+              <button key={m} disabled={busy} onClick={() => createMatch(m)}
+                className="text-left rounded-2xl overflow-hidden border-2 border-white/15 bg-white/95 text-black transition hover:-translate-y-1 hover:shadow-2xl">
+                <div className="px-4 py-3 font-display font-bold text-xl text-white flex items-center gap-2" style={{ background: "linear-gradient(180deg, #4fc3f7, #1976d2)", textShadow: "0 2px 6px rgba(0,0,0,0.25)" }}>
+                  <span className="text-2xl">{meta.icon}</span>
+                  <span>{meta.label}</span>
                 </div>
-              );
-            })}
+                <div className="aspect-[4/3] grid place-items-center bg-gradient-to-br from-slate-100 to-slate-300 text-slate-400 text-xs font-mono">
+                  Open lobby
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Special gamemodes */}
+        <div>
+          <div className="text-center font-display text-2xl font-bold mb-2">Special Gamemodes</div>
+          <div className="h-px bg-white/20 mb-2" />
+          <div className="text-center text-sm text-white/60">Refreshes in: 2d 4hr 3min</div>
+          <div className="mt-3 p-6 rounded-xl border border-dashed border-white/20 text-center text-white/70 text-sm">
+            No special gamemodes yet! Check back later!
           </div>
-        </section>
-      </>
+        </div>
+
+        {/* Open lobbies inline */}
+        {matches.filter((m) => m.status === "lobby" && !m.is_bot_match).length > 0 && (
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">Open lobbies</div>
+            <div className="space-y-2">
+              {matches.filter((m) => m.status === "lobby" && !m.is_bot_match).map((m) => {
+                const ps = players.filter((p) => p.match_id === m.id);
+                const meta = MODE_META[m.mode];
+                const full = ps.length >= m.max_players;
+                const iAmIn = ps.some((p) => p.user_id === myUserId);
+                return (
+                  <div key={m.id} className="p-3 border border-white/15 rounded-lg bg-white/5 flex items-center gap-3 text-white">
+                    <div className="text-xl">{meta.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">{meta.label}</div>
+                      <div className="text-[11px] text-white/60">{ps.length}/{m.max_players} players</div>
+                    </div>
+                    <div className="flex -space-x-1.5">
+                      {ps.map((p) => <AvatarBubble key={p.id} profile={profiles[p.user_id]} />)}
+                      {Array.from({ length: m.max_players - ps.length }).map((_, i) => (
+                        <div key={i} className="h-7 w-7 rounded-full border-2 border-dashed border-white/30" />
+                      ))}
+                    </div>
+                    {iAmIn ? (
+                      <>
+                        {m.created_by === myUserId && full && (<Button size="sm" onClick={() => startMatch(m)} disabled={busy}>Start</Button>)}
+                        <Button size="sm" variant="ghost" onClick={() => leaveMatch(m)} disabled={busy}><LogOut className="h-3.5 w-3.5" /></Button>
+                      </>
+                    ) : (<Button size="sm" onClick={() => joinMatch(m)} disabled={busy || full}>Join</Button>)}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
+
 
   function renderRoster() {
     if (!warriors.length) return <div className="p-8 text-center text-muted-foreground text-sm">Loading your warriors…</div>;
@@ -721,20 +775,34 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
             const outcome = m.winner_team === 0 ? "draw" : m.winner_team === myTeam ? "win" : "lose";
             const gif = outcome === "win" ? myTpl?.win_gif_url : outcome === "lose" ? myTpl?.lose_gif_url : myTpl?.draw_gif_url;
             const poster = myTpl?.battle_sprite_url || myTpl?.icon_url || null;
+            const theme = outcome === "win"
+              ? { bg: "linear-gradient(160deg, #cfe0ff 0%, #b6cdff 100%)", bolt: "#4d7ef5", title: "Victory!", text: "#0c1e44" }
+              : outcome === "lose"
+              ? { bg: "linear-gradient(160deg, #ffd6dc 0%, #ffb6c2 100%)", bolt: "#ee3d54", title: "Defeat!", text: "#3a0c14" }
+              : { bg: "linear-gradient(160deg, #ffe8d6 0%, #ffd1a8 100%)", bolt: "#f08a2a", title: "Draw.", text: "#3a200a" };
             return (
-              <div className="p-8 rounded-xl border bg-card text-center space-y-3">
-                {gif ? (
-                  <PlayOnceGif gif={gif} poster={poster} className="h-40 mx-auto object-contain" durationMs={2200} />
-                ) : (
-                  <Trophy className="h-12 w-12 mx-auto text-yellow-500" />
-                )}
-                <div className="text-3xl font-display font-bold">
-                  {outcome === "draw" ? "Draw." : outcome === "win" ? "Victory!" : "Defeat!"}
+              <div className="relative rounded-xl overflow-hidden" style={{ background: theme.bg, color: theme.text, minHeight: 360 }}>
+                <svg viewBox="0 0 800 360" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                  <polygon points="0,0 380,0 240,120 360,80 200,240 60,140" fill={theme.bolt} opacity="0.9" />
+                  <polygon points="20,30 320,20 220,140 300,110 130,260" fill={theme.bolt} opacity="0.5" />
+                </svg>
+                <div className="relative p-8 flex flex-col items-center text-center gap-3">
+                  <div className="self-start font-display text-5xl font-black tracking-tight text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.25)]">{theme.title}</div>
+                  <div className="self-start text-xl font-bold tabular-nums mt-1">
+                    {outcome === "draw" ? "0 🏆" : outcome === "win" ? "+10 🏆  🍜+2  👝+3  ✦+1" : "−5 🏆"}
+                  </div>
+                  <div className="mt-2">
+                    {gif ? (
+                      <PlayOnceGif gif={gif} poster={poster} className="h-48 object-contain" durationMs={2400} />
+                    ) : (
+                      <Trophy className="h-20 w-20" />
+                    )}
+                  </div>
+                  <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}
+                    className="self-end mt-2 px-8 h-10 rounded-full bg-white/80 text-black hover:bg-white border border-white/40 font-display font-bold tracking-wider">
+                    EXIT
+                  </Button>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {outcome === "draw" ? "0 🏆 · No trophies exchanged." : outcome === "win" ? "+10 🏆 trophies." : "−5 🏆 trophies."}
-                </div>
-                <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}>Exit</Button>
               </div>
             );
           })()}
@@ -843,4 +911,22 @@ function PlayOnceGif({ gif, poster, durationMs = 2000, className }: {
   // Cache-bust GIF on each mount so it always restarts from frame 0 instead of resuming a cached loop.
   const src = done && poster ? poster : `${gif}${gif.includes("?") ? "&" : "?"}_t=${Math.floor(Date.now() / 1000)}`;
   return <img src={src} alt="" className={className} />;
+}
+
+function RailButton({ emoji, label, sublabel, onClick, highlight }: {
+  emoji: string; label: string; sublabel?: string; onClick?: () => void; highlight?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`group flex flex-col items-center gap-1 px-2 py-3 rounded-2xl border text-white transition shadow-lg
+        ${highlight
+          ? "bg-gradient-to-b from-amber-400/40 to-amber-600/20 border-amber-300/40 hover:from-amber-400/60"
+          : "bg-white/5 border-white/15 hover:bg-white/10"}`}
+    >
+      <div className="text-3xl drop-shadow">{emoji}</div>
+      <div className="text-[11px] font-display font-bold uppercase tracking-wide text-center leading-tight">{label}</div>
+      {sublabel && <div className="text-[10px] text-white/60 font-mono">{sublabel}</div>}
+    </button>
+  );
 }

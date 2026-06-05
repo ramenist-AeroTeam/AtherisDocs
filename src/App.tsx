@@ -7,6 +7,7 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Auth from "./pages/Auth.tsx";
 import Home from "./pages/Home.tsx";
+import Arena from "./pages/Arena.tsx";
 import Changelog from "./pages/Changelog.tsx";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/" element={<Home />} />
           <Route path="/app" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/arena" element={<Arena />} />
           <Route path="/changelog" element={<Changelog />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
