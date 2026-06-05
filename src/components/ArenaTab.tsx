@@ -775,20 +775,34 @@ export function ArenaTab({ tabId, myUserId }: { tabId: string; myUserId: string 
             const outcome = m.winner_team === 0 ? "draw" : m.winner_team === myTeam ? "win" : "lose";
             const gif = outcome === "win" ? myTpl?.win_gif_url : outcome === "lose" ? myTpl?.lose_gif_url : myTpl?.draw_gif_url;
             const poster = myTpl?.battle_sprite_url || myTpl?.icon_url || null;
+            const theme = outcome === "win"
+              ? { bg: "linear-gradient(160deg, #cfe0ff 0%, #b6cdff 100%)", bolt: "#4d7ef5", title: "Victory!", text: "#0c1e44" }
+              : outcome === "lose"
+              ? { bg: "linear-gradient(160deg, #ffd6dc 0%, #ffb6c2 100%)", bolt: "#ee3d54", title: "Defeat!", text: "#3a0c14" }
+              : { bg: "linear-gradient(160deg, #ffe8d6 0%, #ffd1a8 100%)", bolt: "#f08a2a", title: "Draw.", text: "#3a200a" };
             return (
-              <div className="p-8 rounded-xl border bg-card text-center space-y-3">
-                {gif ? (
-                  <PlayOnceGif gif={gif} poster={poster} className="h-40 mx-auto object-contain" durationMs={2200} />
-                ) : (
-                  <Trophy className="h-12 w-12 mx-auto text-yellow-500" />
-                )}
-                <div className="text-3xl font-display font-bold">
-                  {outcome === "draw" ? "Draw." : outcome === "win" ? "Victory!" : "Defeat!"}
+              <div className="relative rounded-xl overflow-hidden" style={{ background: theme.bg, color: theme.text, minHeight: 360 }}>
+                <svg viewBox="0 0 800 360" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                  <polygon points="0,0 380,0 240,120 360,80 200,240 60,140" fill={theme.bolt} opacity="0.9" />
+                  <polygon points="20,30 320,20 220,140 300,110 130,260" fill={theme.bolt} opacity="0.5" />
+                </svg>
+                <div className="relative p-8 flex flex-col items-center text-center gap-3">
+                  <div className="self-start font-display text-5xl font-black tracking-tight text-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.25)]">{theme.title}</div>
+                  <div className="self-start text-xl font-bold tabular-nums mt-1">
+                    {outcome === "draw" ? "0 🏆" : outcome === "win" ? "+10 🏆  🍜+2  👝+3  ✦+1" : "−5 🏆"}
+                  </div>
+                  <div className="mt-2">
+                    {gif ? (
+                      <PlayOnceGif gif={gif} poster={poster} className="h-48 object-contain" durationMs={2400} />
+                    ) : (
+                      <Trophy className="h-20 w-20" />
+                    )}
+                  </div>
+                  <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}
+                    className="self-end mt-2 px-8 h-10 rounded-full bg-white/80 text-black hover:bg-white border border-white/40 font-display font-bold tracking-wider">
+                    EXIT
+                  </Button>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {outcome === "draw" ? "0 🏆 · No trophies exchanged." : outcome === "win" ? "+10 🏆 trophies." : "−5 🏆 trophies."}
-                </div>
-                <Button onClick={() => { setActiveId(null); trophyAwardedRef.current.delete(m.id); }}>Exit</Button>
               </div>
             );
           })()}
