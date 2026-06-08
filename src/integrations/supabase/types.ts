@@ -698,8 +698,11 @@ export type Database = {
       user_warriors: {
         Row: {
           created_at: string
+          hp_level: number
           id: string
           is_equipped: boolean
+          main_level: number
+          mega_level: number
           nickname: string
           template_id: string
           trophies: number
@@ -709,8 +712,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          hp_level?: number
           id?: string
           is_equipped?: boolean
+          main_level?: number
+          mega_level?: number
           nickname?: string
           template_id: string
           trophies?: number
@@ -720,8 +726,11 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          hp_level?: number
           id?: string
           is_equipped?: boolean
+          main_level?: number
+          mega_level?: number
           nickname?: string
           template_id?: string
           trophies?: number
@@ -745,12 +754,26 @@ export type Database = {
           created_at: string
           draw_gif_url: string | null
           emoji: string
+          hp_base: number
+          hp_max: number
           icon_url: string | null
           id: string
           is_active: boolean
           lose_gif_url: string | null
+          main_attack_name: string
+          main_cooldown_ms: number
+          main_dmg_base: number
+          main_dmg_max: number
+          main_range: number
+          max_level: number
+          mega_attack_name: string
+          mega_cooldown_ms: number
+          mega_dmg_base: number
+          mega_dmg_max: number
+          mega_range: number
           name: string
           rarity: string
+          speed: number
           tagline: string
           weapon_1_emoji: string
           weapon_1_name: string
@@ -763,12 +786,26 @@ export type Database = {
           created_at?: string
           draw_gif_url?: string | null
           emoji?: string
+          hp_base?: number
+          hp_max?: number
           icon_url?: string | null
           id?: string
           is_active?: boolean
           lose_gif_url?: string | null
+          main_attack_name?: string
+          main_cooldown_ms?: number
+          main_dmg_base?: number
+          main_dmg_max?: number
+          main_range?: number
+          max_level?: number
+          mega_attack_name?: string
+          mega_cooldown_ms?: number
+          mega_dmg_base?: number
+          mega_dmg_max?: number
+          mega_range?: number
           name: string
           rarity?: string
+          speed?: number
           tagline?: string
           weapon_1_emoji?: string
           weapon_1_name?: string
@@ -781,12 +818,26 @@ export type Database = {
           created_at?: string
           draw_gif_url?: string | null
           emoji?: string
+          hp_base?: number
+          hp_max?: number
           icon_url?: string | null
           id?: string
           is_active?: boolean
           lose_gif_url?: string | null
+          main_attack_name?: string
+          main_cooldown_ms?: number
+          main_dmg_base?: number
+          main_dmg_max?: number
+          main_range?: number
+          max_level?: number
+          mega_attack_name?: string
+          mega_cooldown_ms?: number
+          mega_dmg_base?: number
+          mega_dmg_max?: number
+          mega_range?: number
           name?: string
           rarity?: string
+          speed?: number
           tagline?: string
           weapon_1_emoji?: string
           weapon_1_name?: string
@@ -801,6 +852,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_upsert_warrior_template: {
+        Args: {
+          _battle_sprite_url: string
+          _draw_gif_url: string
+          _emoji: string
+          _hp_base: number
+          _hp_max: number
+          _icon_url: string
+          _id: string
+          _is_active: boolean
+          _lose_gif_url: string
+          _main_attack_name: string
+          _main_cooldown_ms: number
+          _main_dmg_base: number
+          _main_dmg_max: number
+          _main_range: number
+          _max_level: number
+          _mega_attack_name: string
+          _mega_cooldown_ms: number
+          _mega_dmg_base: number
+          _mega_dmg_max: number
+          _mega_range: number
+          _name: string
+          _rarity: string
+          _speed: number
+          _tagline: string
+          _win_gif_url: string
+        }
+        Returns: string
+      }
+      arena_apply_damage: {
+        Args: { _amount: number; _target_player_id: string }
+        Returns: Json
+      }
       award_arena_trophies: {
         Args: { _match_id: string; _winner_team: number }
         Returns: undefined
@@ -831,6 +916,10 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      upgrade_warrior_stat: {
+        Args: { _stat: string; _warrior_id: string }
+        Returns: Json
+      }
       upgrade_warrior_weapon: {
         Args: { _slot: number; _warrior_id: string }
         Returns: Json
