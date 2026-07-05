@@ -350,6 +350,75 @@ export type Database = {
         }
         Relationships: []
       }
+      event_flowers: {
+        Row: {
+          bloom_ms: number
+          code: string
+          created_at: string
+          drop_table: Json
+          emoji: string
+          id: string
+          name: string
+          rarity: string
+          season_key: string
+        }
+        Insert: {
+          bloom_ms?: number
+          code: string
+          created_at?: string
+          drop_table?: Json
+          emoji?: string
+          id?: string
+          name: string
+          rarity?: string
+          season_key: string
+        }
+        Update: {
+          bloom_ms?: number
+          code?: string
+          created_at?: string
+          drop_table?: Json
+          emoji?: string
+          id?: string
+          name?: string
+          rarity?: string
+          season_key?: string
+        }
+        Relationships: []
+      }
+      event_seasons: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          is_active: boolean
+          key: string
+          name: string
+          starts_at: string
+          theme: string | null
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          is_active?: boolean
+          key: string
+          name: string
+          starts_at: string
+          theme?: string | null
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          name?: string
+          starts_at?: string
+          theme?: string | null
+        }
+        Relationships: []
+      }
       garden_plants: {
         Row: {
           block_id: string
@@ -453,6 +522,39 @@ export type Database = {
           },
         ]
       }
+      planted_flowers: {
+        Row: {
+          blooms_at: string
+          collected: boolean
+          created_at: string
+          flower_code: string
+          id: string
+          planted_at: string
+          slot: number
+          user_id: string
+        }
+        Insert: {
+          blooms_at: string
+          collected?: boolean
+          created_at?: string
+          flower_code: string
+          id?: string
+          planted_at?: string
+          slot?: number
+          user_id: string
+        }
+        Update: {
+          blooms_at?: string
+          collected?: boolean
+          created_at?: string
+          flower_code?: string
+          id?: string
+          planted_at?: string
+          slot?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_emoji: string
@@ -466,6 +568,9 @@ export type Database = {
           level: number
           lumina: number
           noodles: number
+          truaero_email: string | null
+          truaero_verified: boolean
+          tutorial_done: boolean
           tutorial_seen: boolean
           updated_at: string
           user_id: string
@@ -483,6 +588,9 @@ export type Database = {
           level?: number
           lumina?: number
           noodles?: number
+          truaero_email?: string | null
+          truaero_verified?: boolean
+          tutorial_done?: boolean
           tutorial_seen?: boolean
           updated_at?: string
           user_id: string
@@ -500,10 +608,43 @@ export type Database = {
           level?: number
           lumina?: number
           noodles?: number
+          truaero_email?: string | null
+          truaero_verified?: boolean
+          tutorial_done?: boolean
           tutorial_seen?: boolean
           updated_at?: string
           user_id?: string
           xp?: number
+        }
+        Relationships: []
+      }
+      season_pass_tiers: {
+        Row: {
+          free_reward: Json
+          id: string
+          lumina_reward: Json | null
+          pro_reward: Json
+          season_key: string
+          tier: number
+          xp_required: number
+        }
+        Insert: {
+          free_reward?: Json
+          id?: string
+          lumina_reward?: Json | null
+          pro_reward?: Json
+          season_key: string
+          tier: number
+          xp_required?: number
+        }
+        Update: {
+          free_reward?: Json
+          id?: string
+          lumina_reward?: Json | null
+          pro_reward?: Json
+          season_key?: string
+          tier?: number
+          xp_required?: number
         }
         Relationships: []
       }
@@ -620,6 +761,30 @@ export type Database = {
           },
         ]
       }
+      user_flowers: {
+        Row: {
+          flower_code: string
+          id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          flower_code: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          flower_code?: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           custom_label: string | null
@@ -638,6 +803,48 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_season_pass: {
+        Row: {
+          claimed_free: number[]
+          claimed_lumina: number[]
+          claimed_pro: number[]
+          id: string
+          is_lumina: boolean
+          is_pro: boolean
+          season_key: string
+          tier: number
+          updated_at: string
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          claimed_free?: number[]
+          claimed_lumina?: number[]
+          claimed_pro?: number[]
+          id?: string
+          is_lumina?: boolean
+          is_pro?: boolean
+          season_key: string
+          tier?: number
+          updated_at?: string
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          claimed_free?: number[]
+          claimed_lumina?: number[]
+          claimed_pro?: number[]
+          id?: string
+          is_lumina?: boolean
+          is_pro?: boolean
+          season_key?: string
+          tier?: number
+          updated_at?: string
+          user_id?: string
+          xp?: number
         }
         Relationships: []
       }
@@ -890,12 +1097,22 @@ export type Database = {
         Args: { _match_id: string; _winner_team: number }
         Returns: undefined
       }
+      claim_pass_tier: {
+        Args: { _season_key: string; _tier: number; _track: string }
+        Returns: Json
+      }
+      collect_bloom: { Args: { _id: string }; Returns: Json }
       ensure_auto_property: {
         Args: { _display_name?: string; _user_id: string }
         Returns: string
       }
+      ensure_season_pass: { Args: { _season_key: string }; Returns: string }
       grant_currency: {
         Args: { _lumina?: number; _noodles?: number }
+        Returns: undefined
+      }
+      grant_flower: {
+        Args: { _code: string; _qty?: number }
         Returns: undefined
       }
       grant_inventory_item: {
@@ -907,6 +1124,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      grant_season_xp: {
+        Args: { _season_key: string; _xp: number }
+        Returns: Json
+      }
       grant_starter_warrior: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -916,6 +1137,9 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      plant_flower: { Args: { _code: string; _slot: number }; Returns: string }
+      upgrade_pass_lumina: { Args: { _season_key: string }; Returns: Json }
+      upgrade_pass_pro: { Args: { _season_key: string }; Returns: Json }
       upgrade_warrior_stat: {
         Args: { _stat: string; _warrior_id: string }
         Returns: Json
