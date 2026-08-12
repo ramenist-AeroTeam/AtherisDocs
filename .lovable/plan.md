@@ -1,60 +1,52 @@
-# Arena Rework — Plan
+# Arena Rebuild — From Scratch
 
-Scope: rebuild the Arena tab end-to-end. Homepage redesign comes after, in a follow-up turn.
+I read all 30 concept slides and every asset in the 2.0 pack. Here's exactly what I read, and where I want to deviate. Nothing gets built until you sign off on the deviations at the bottom.
 
-## What changes for the player
+## What the concept actually shows
 
-- Pick a game mode (same picker as today: 1v1 / 2v2 / etc.)
-- Bring a **warrior** into the match. Each warrior has: name, rarity, trophy count, and **2 weapons**.
-- Each weapon has a level. Upgrade weapons with **noodles** + **noodle packets** (inventory item).
-- Match has a **5:00 hard cap** and a **map** that changes per season/event.
-- Live **in-match chat** sidebar.
-- **Win = +10 trophies, loss = −5 trophies** (on the warrior).
-- Under **20 trophies** → matched against bots. Above → matched with real players (bot fallback if no opponent found).
+The deck is only two screens (plus the tutorial pass over both):
 
-## Database (new tables, all RLS'd)
+**Lobby (slides 1–20)** — night-sky garden background, everything overlaid:
+- Top center: one black pill — `0 🍜 | 0 ✦ | 0 👝`
+- Top right: globe (World), 3-bar settings, teal `TruAero` button
+- Top left: teal player-icon square (first letter of username) with `reefinn` under it
+- Left rail down: Warriors (3 fanned cards, black label pill) → `Lv. 5` purple/gold hexagon → gold trophy icon + `500` + green progress bar
+- Right rail down: big purple `Celestial Gardens` pill → News → Shop → `:3 Friends` → Season Pass
+- Bottom: dark `⚔️ Showdown 1v1 / Map Name here!` strip + huge yellow `PLAY`
+- Tori sits center-right as a green circle with a speech bubble
 
-- `warrior_templates` — the roster I'll seed (3 placeholders for now: Ramen Knight / Lumina Mage / Void Rogue). Fields: name, emoji, rarity, base_weapon_1, base_weapon_2, weapon_1_emoji, weapon_2_emoji. Public read, staff-only write.
-- `user_warriors` — instance owned by a user. Fields: user_id, template_id, nickname, trophies (default 0), weapon_1_level, weapon_2_level, is_equipped.
-- `arena_maps` — season/event maps. Fields: name, emoji, theme (`spring`/`summer`/`autumn`/`winter`/`event`), bg_gradient, is_active. Public read.
-- `arena_chat` — match-scoped chat. Fields: match_id, user_id, content. Read for match participants, insert self.
-- Extend `arena_matches`: add `map_id`, `is_bot_match` (bool).
-- Extend `arena_players`: add `warrior_id` (the user_warrior brought into the match).
+**Battle (slides 21–30)** — flat purple map, green ground band, and:
+- Top center: black `5:00` pill
+- Top left: enemy HP bar, green fill, number centered (`2000`)
+- `you` name pill above your warrior
+- Off-screen teammate arrows: black arrow with `1` (left edge) and `2` (right edge)
+- Bottom right: `1 Main` (red border) and `2 Mega` (yellow border) cards, then selected-attack name text (`Turtle Bite` / `None selected`)
+- A cooldown clock disc over your warrior
+- Aim: hold to show a gray ghost blob + crosshair, release to fire; click anywhere = auto aim
+- Bottom of screen: elimination bar — blue `Imp` segment, red `pmI` segment, on a pink/peach/yellow gradient rail
 
-RPCs (security definer):
-- `upgrade_warrior_weapon(warrior_id, slot)` — checks ownership, charges noodles + 1 packet from inventory based on current level, bumps weapon level.
-- `resolve_arena_match(match_id, winner_team)` — updates each warrior's trophies (+10 / −5, clamped at 0).
-- `grant_starter_warrior()` — gives the user one Ramen Knight if they have none. Called on first arena visit.
+Every other menu (News, Shop, Friends, Season Pass, TruAero, Settings, World, player profile, trophy/exp roads, other gamemodes, Celestial Gardens) is never drawn in the deck — those get a **Coming Soon** card, per your instruction.
 
-## Frontend
+## What I'll build
 
-Rewrite `src/components/ArenaTab.tsx` into:
-- `ArenaTab.tsx` — top-level routing between Lobby / Roster / Match.
-- `arena/WarriorRoster.tsx` — grid of owned warriors; click to view detail + upgrade weapons; equip toggle.
-- `arena/WarriorCard.tsx` — visual card showing rarity border, trophy count, weapon list with level pips.
-- `arena/UpgradeDialog.tsx` — shows cost (noodles + packets) and confirms.
-- `arena/Lobby.tsx` — mode picker (kept), now also shows current season map preview + "with bot" badge if user's equipped warrior has <20 trophies.
-- `arena/MatchView.tsx` — 5-minute countdown header, map background, players + HPs, action buttons (existing move system stays mechanically — weapons just reskin moves), **right-side ChatPanel**.
-- `arena/ChatPanel.tsx` — realtime via `arena_chat` table.
+Fresh files, old arena components deleted:
 
-Trophy ladder, bot match flag, and the under-20 bot rule live in the matchmaking helper inside `Lobby.tsx`.
+- `src/pages/Arena.tsx` — lobby, 1:1 with the slides, no invented elements
+- `src/components/arena/Lobby*.tsx` — small pieces (currency pill, rails, hex, trophy meter)
+- `src/components/arena/Match.tsx` — real-time side-view match: WASD/arrows move, 1/2 select attack, hold-aim + release, click auto-aim, cooldown disc, 5:00 timer, elimination bar, bot opponent
+- `src/components/arena/WarriorSelect.tsx` — warrior grid + noodles/packet upgrades (Health / Main / Mega, Lv 1–12)
+- `src/components/arena/ComingSoon.tsx` — reused for every undrawn menu
+- `src/components/arena/tori.ts` — Tori's line-by-line tutorial script, transcribed from the deck, stored but **not wired up** (per your instruction)
 
-## What stays
+Currency reads/writes stay on the existing realtime hook so counters match the database everywhere.
 
-- The existing round-resolution / move-locking machinery in `arena_rounds` stays — weapons are flavored move sources, not a new combat engine.
-- Mode list (1v1, 2v2, etc.) is unchanged.
+Assets I'll upload from the new pack that aren't in the project yet: Max Icon + Max win/lose/draw/spark videos, the three CG emote gifs, and the Atheris Pass art.
 
-## Out of scope (this turn)
+## Deviations I need approval on
 
-- Homepage redesign — separate turn after arena lands.
-- Full warrior roster — seeding 3 placeholders so you can fill out the catalog later.
-- Designing per-season map art beyond gradient + emoji theming.
+1. **Tori's lobby bubble** — the deck always draws Tori mid-screen with a bubble, but that's the tutorial state. Since the tutorial is off, I'd render the lobby with **no Tori bubble** by default. Alternative: keep Tori idle center-right with no bubble.
+2. **Max** — there's a full Max asset set (icon + 4 videos) but Max appears nowhere in the deck. I'd add Max as a second warrior in the roster using those assets. Say the word if he's meant for something else.
+3. **Elimination bar labels** — `Imp` / `pmI` read as placeholder text (mirrored). I'd render real player names there instead of literal `Imp`/`pmI`.
+4. **Aspect ratio** — the deck is a fixed 16:9 frame. I'd letterbox the arena to 16:9 on wide screens so the layout never stretches, rather than fluid-filling the viewport.
 
-## Order of operations
-
-1. Migration (tables, columns, RPCs, seed 3 warriors + 1 default map).
-2. Frontend rewrite of ArenaTab + new subcomponents.
-3. Wire chat realtime + 5-min timer.
-4. Verify build, then move on to homepage.
-
-Approve and I'll start with the migration.
+Approve, or tell me which of the four to do differently, and I'll start.
