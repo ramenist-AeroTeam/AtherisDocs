@@ -7,15 +7,17 @@ I read all 30 concept slides and every asset in the 2.0 pack. Here's exactly wha
 The deck is only two screens (plus the tutorial pass over both):
 
 **Lobby (slides 1–20)** — night-sky garden background, everything overlaid:
+
 - Top center: one black pill — `0 🍜 | 0 ✦ | 0 👝`
 - Top right: globe (World), 3-bar settings, teal `TruAero` button
-- Top left: teal player-icon square (first letter of username) with `reefinn` under it
-- Left rail down: Warriors (3 fanned cards, black label pill) → `Lv. 5` purple/gold hexagon → gold trophy icon + `500` + green progress bar
+- Top left: teal player-icon square (first letter of username) with `username` under it
+- Left rail down: Warriors (3 fanned cards, black label pill) → `Lv. 5` purple/gold hexagon (EXP road)→ gold trophy icon +`500 (number of trophies)` + green progress bar (trophy road)
 - Right rail down: big purple `Celestial Gardens` pill → News → Shop → `:3 Friends` → Season Pass
-- Bottom: dark `⚔️ Showdown 1v1 / Map Name here!` strip + huge yellow `PLAY`
+- Bottom: dark `⚔️ Showdown 1v1 / Map Name here! (map name placeholer)` strip + huge yellow `PLAY`
 - Tori sits center-right as a green circle with a speech bubble
 
 **Battle (slides 21–30)** — flat purple map, green ground band, and:
+
 - Top center: black `5:00` pill
 - Top left: enemy HP bar, green fill, number centered (`2000`)
 - `you` name pill above your warrior
